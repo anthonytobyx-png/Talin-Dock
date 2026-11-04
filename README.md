@@ -52,7 +52,7 @@ Browser checks use `/usr/bin/chromium` or `CHROMIUM_PATH`. `test:cloud` uses Clo
 
 ## Hosting
 
-Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. Live dashboard: https://talin-dock.pages.dev/. A free D1 database is provisioned. Household cloud sync remains disabled until the owner configures its production password verifier; see DEPLOYMENT.md. See [DEPLOYMENT.md](DEPLOYMENT.md) for account setup, tested local commands, missing access and exact remaining provisioning steps. The root Wrangler config now binds the provisioned D1 database. No paid service or PC host is needed.
+Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. Live dashboard: https://talin-dock.pages.dev/. A free D1 database is provisioned. Household cloud sign-in is configured and an authenticated read of cloud revision 1 has been verified; see DEPLOYMENT.md. See [DEPLOYMENT.md](DEPLOYMENT.md) for account setup, tested local commands, missing access and exact remaining provisioning steps. The root Wrangler config now binds the provisioned D1 database. No paid service or PC host is needed.
 
 The prior cloud task fetched Cloudflare's official guide, installed skills and registered MCP. Those environment-specific setup and validation results are preserved in DEPLOYMENT.md.
 

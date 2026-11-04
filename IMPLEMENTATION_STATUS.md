@@ -44,3 +44,13 @@ That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, 
 ## Desktop hosting — 2026-11-04
 
 Production is deployed at https://talin-dock.pages.dev/ from `feat/cloud-app`. Cloudflare reran typecheck, lint, 15 unit tests and build successfully. Live weather, offline-readiness status, HTTPS security headers and fail-closed unconfigured API behaviour were checked. Production verifier setup and authenticated hosted sync remain pending. Build audit reports development-toolchain vulnerabilities; no application dependency upgrade was included.
+
+## Production verification — 2026-11-04
+
+- Production URL: https://talin-dock.pages.dev/. Deployed source commit: `5f1901ab0cb50fd024ebf32dcf1fec0ea19e7f48`; secret-enabled deployment: `e56de6c6-559d-4ecd-9008-9e3ceaef83eb` (successful).
+- The owner saved `TALIN_PASSWORD_HASH` as an encrypted production secret and signed in privately. No passphrase or verifier was read, logged or committed by the agent.
+- Live `/api/session` reports configured=true. A separate unauthenticated client receives 401 for private preferences; a cross-origin login POST receives 403. API responses are no-store.
+- The live browser shows Signed in. Read cloud copy successfully returned cloud revision 1, confirming an existing saved copy is persisted in remote D1 and readable through the authenticated API. Existing cloud/local preferences were not overwritten for verification. Second-device restore, hosted stale-write conflict and hosted logout/replayed-cookie checks remain acceptance checks; their local full-stack equivalents passed.
+- GitHub Actions run 41896097954 passed typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests (27 tests). This includes the browser-only verifier helper test. Cloudflare's secret-enabled rebuild also passed its configured typecheck/lint/unit/build checks.
+- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The previously documented development-toolchain findings remain unresolved.
+- No paid plan, payment method, billable integration or PC hosting dependency was activated. Physical iPad/Safari checks and calendar/device integrations remain outside this deployment verification.

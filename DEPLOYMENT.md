@@ -2,7 +2,7 @@
 
 ## Current state
 
-The app, Pages Functions API, D1 schema, security boundary and offline build passed the previous cloud task's checks. The desktop continuation now has signed-in Cloudflare dashboard access and a connected GitHub repository. Free D1 `talin-dock` was created in Western Europe with ID `a8e61d46-75fc-45e4-9282-a7f713dc4721`; its three application tables and session-expiry index were verified in the dashboard. The real database ID is committed in root `wrangler.jsonc`. The household production password verifier is not yet configured.
+The app, Pages Functions API, D1 schema, security boundary and offline build passed the previous cloud task's checks. The desktop continuation now has signed-in Cloudflare dashboard access and a connected GitHub repository. Free D1 `talin-dock` was created in Western Europe with ID `a8e61d46-75fc-45e4-9282-a7f713dc4721`; its three application tables and session-expiry index were verified in the dashboard. The real database ID is committed in root `wrangler.jsonc`. The owner has securely saved the encrypted production password verifier. The authenticated production deployment is live and cloud revision 1 was read successfully.
 
 The owner's latest request authorises continuing toward free Cloudflare hosting. Never activate a paid plan, add a payment method or choose a billable integration. Account authentication and any requested consent remain the owner's responsibility.
 
@@ -75,3 +75,13 @@ That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, 
 - Initial production deployment succeeded at https://talin-dock.pages.dev/ from commit `0668c15`. Typecheck, lint, 15 unit tests and build passed in Cloudflare. The live dashboard showed real Monaghan weather and reported offline readiness. HTTPS responses include CSP, nosniff, no-referrer and denied camera/microphone/geolocation permissions. `/api/session` returns configured=false/authenticated=false; unauthenticated preferences reads return 503 until the verifier is configured. Authenticated sync and physical iPad checks are still pending.
 - `/password-setup.html` is a browser-only administrative helper for producing the existing PBKDF2 verifier format. It makes no network requests and persists no credentials. The owner must choose the passphrase, copy its verifier into the encrypted production secret `TALIN_PASSWORD_HASH`, save and redeploy. The public test harness password must never be used.
 - Build-time npm audit reported 8 moderate and 2 critical findings in development tooling (Vitest/Tinypool and typescript-eslint/minimatch). They are not runtime UI dependencies. No dependency upgrades were attempted as part of provisioning; toolchain remediation remains separate tracked work.
+
+## Production verification — 2026-11-04
+
+- Production URL: https://talin-dock.pages.dev/. Deployed source commit: `5f1901ab0cb50fd024ebf32dcf1fec0ea19e7f48`; secret-enabled deployment: `e56de6c6-559d-4ecd-9008-9e3ceaef83eb` (successful).
+- The owner saved `TALIN_PASSWORD_HASH` as an encrypted production secret and signed in privately. No passphrase or verifier was read, logged or committed by the agent.
+- Live `/api/session` reports configured=true. A separate unauthenticated client receives 401 for private preferences; a cross-origin login POST receives 403. API responses are no-store.
+- The live browser shows Signed in. Read cloud copy successfully returned cloud revision 1, confirming an existing saved copy is persisted in remote D1 and readable through the authenticated API. Existing cloud/local preferences were not overwritten for verification. Second-device restore, hosted stale-write conflict and hosted logout/replayed-cookie checks remain acceptance checks; their local full-stack equivalents passed.
+- GitHub Actions run 41896097954 passed typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests (27 tests). This includes the browser-only verifier helper test. Cloudflare's secret-enabled rebuild also passed its configured typecheck/lint/unit/build checks.
+- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The previously documented development-toolchain findings remain unresolved.
+- No paid plan, payment method, billable integration or PC hosting dependency was activated. Physical iPad/Safari checks and calendar/device integrations remain outside this deployment verification.
