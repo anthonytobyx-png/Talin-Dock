@@ -109,6 +109,12 @@ test("offline shell reloads, keeps local settings, and never caches APIs", async
   await context.setOffline(true);
   await page.reload();
   await expect(
+    page.getByText("You’re offline.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Reloading offline is not supported yet.", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
     page.getByRole("button", { name: "Bedroom", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(

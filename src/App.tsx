@@ -165,9 +165,8 @@ export default function App() {
         {!online && (
           <div className="notice" role="status">
             <WifiOff size={18} />
-            Browser reports no network. Clock and local preferences remain
-            available while this page is open. Reloading offline is not
-            supported yet.
+            You’re offline. Clock, layouts and saved preferences remain
+            available. Live weather and cloud sync need an internet connection.
           </div>
         )}
         {!saved && (

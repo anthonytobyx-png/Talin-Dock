@@ -5,11 +5,11 @@ Do not send tokens, pairing keys or private calendars in chat. Phase 1 needs non
 ## iPad Air 2
 
 - Record exact iPadOS 15.x and Safari versions, storage availability and current battery/charging condition.
-- Once HTTPS deployment is approved: open Safari, Add to Home Screen, verify standalone launch/icon and returning from app switcher. Cold offline launch is currently unsupported.
+- Once HTTPS deployment is approved: open Safari, Add to Home Screen, verify standalone launch/icon and returning from app switcher. After Available offline is shown, test closing and reopening without Wi-Fi; Safari may evict cached storage.
 - Check 1024×768 landscape and 768×1024 portrait: nav rail/sidebar, all touch targets, keyboard, scrolling, text scaling, contrast and VoiceOver labels. Compare original artboards when available.
 - Switch room/profile; rename personal profiles; change time format/theme; change widget visibility. Reload, close/reopen and restart iPad; verify persistence. Check private-browsing/storage-denied behaviour without deleting valuable data.
 - Check clock matches device time/timezone including midnight. Measure cold start and room-switch latency; watch Safari reloads/memory pressure over a day. These are unmeasured on real hardware.
-- Test Wi-Fi loss: open clock works, no fake readings appear. Reload offline is not guaranteed.
+- Test Wi-Fi loss: open clock works, no fake readings appear. After offline installation completes, test an offline reload and confirm the saved layout remains.
 - Decide docked auto-lock, charging and manual return policy. Do not assume wake lock, kiosk relaunch or automatic brightness.
 
 ## Samsung TV UE43U8000F
@@ -44,4 +44,6 @@ Sign in to household cloud storage; explicitly save/read preferences from a seco
 
 A live Monaghan weather response was verified in the previous cloud task. The remote free D1 schema is now provisioned; see DEPLOYMENT.md for Pages publication and authentication status. Physical iPad checks remain required.
 
-Hosted dashboard: https://talin-dock.pages.dev/. The desktop browser showed live Monaghan weather and Available offline. Complete the production verifier setup in DEPLOYMENT.md before testing cloud sign-in. Neither this desktop check nor the prior browser tests proves physical iPad compatibility.
+Hosted dashboard: https://talin-dock.pages.dev/. The desktop browser showed live Monaghan weather and Available offline. The production verifier is configured; test household cloud sign-in with the owner’s existing passphrase. Neither this desktop check nor the prior browser tests proves physical iPad compatibility.
+
+The owner reported the dashboard remained visible on the iPad without a network, alongside an outdated “Reloading offline is not supported yet” banner. The banner has been corrected to describe available local features and the internet requirement for live weather/cloud sync. A visible open page alone does not establish a cold offline launch; check reload and reopening separately.

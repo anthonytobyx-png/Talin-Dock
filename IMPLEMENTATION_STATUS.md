@@ -62,3 +62,9 @@ Production is deployed at https://talin-dock.pages.dev/ from `feat/cloud-app`. C
 - Upgraded development-only Vitest from 3.2.7 to 5.1.0 to remove vulnerable mocker/Tinypool dependencies. Added a scoped minimatch 11 override only for typescript-estree, whose used `minimatch()` API remains supported. Remove the override once typescript-eslint declares a patched version itself. Application runtime dependencies and source remain unchanged.
 - Full `npm audit` now reports zero vulnerabilities, including development dependencies. Typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests passed. Lint/typecheck were also checked after the scoped override.
 - Owner sign-in and remote cloud revision 1 were verified by the desktop continuation. This isolated cloud browser has no owner session; hosted authenticated conflict/restore/logout checks and physical iPad acceptance remain outstanding. No production preferences were overwritten and no password was requested or reset.
+
+## Offline notice correction — 2026-11-04
+
+The owner reported the interface remained visible offline on the iPad while the banner incorrectly said offline reload was unsupported. Removed this obsolete Phase 1 message. The notice now describes available local features and the internet requirement for live weather and cloud sync. The existing offline reload test also checks the corrected notice and rejects the obsolete wording. Service-worker/cache behaviour is unchanged; an already-open interface is not proof of physical iPad cold-launch behaviour.
+
+Validation for the notice correction: typecheck, lint, production build, 15 unit tests, seven UI browser tests and five local full-stack tests passed, including the offline reload/banner regression check.
