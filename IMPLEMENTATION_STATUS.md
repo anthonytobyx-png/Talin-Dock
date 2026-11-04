@@ -84,3 +84,9 @@ The owner explicitly authorised local discovery and device pairing, superseding 
 - Calendar integration remains unchanged pending provider selection. Google, iCloud and Outlook choices are preserved.
 
 The owner subsequently confirmed both devices are on, stated that no separate hub should be needed because the iPad is local, and deferred calendars (likely iCloud). A direct Safari route remains unverified; local presence alone does not grant trusted TV TLS access or raw Tuya protocol access. Calendar implementation is deferred at the owner's request.
+
+## Home deployment and Alexa follow-up
+
+Commit `99ee6c72f81d19b2f367d43619cecf505602956e` passed GitHub run 41905460168 and Cloudflare deployment 57fd4223-216f-4662-9fa3-783d0630042a. Production serves the scrollable navigation CSS. Home/Settings navigation and explicit Update app activation were checked in a 1024x600 browser viewport; the update reloaded successfully and retained the existing room selection. No household/cloud preferences were overwritten.
+
+The owner reports both devices are linked in the Alexa app without an Echo speaker. This is useful account-linkage information but is not independently verified device capability or third-party API consent. Amazon's documented Smart Home API integrates a developer's own device cloud/add-on; the reviewed REST API does not establish a general Talin API for commanding devices belonging to other linked skills. No private Alexa cookies were extracted, no paid Alexa service was enabled, and no Alexa relay integration is claimed. Source: https://developer.amazon.com/docs/alexaplus/smarthome/rest-api-reference
