@@ -1,3 +1,4 @@
+/* global document, crypto, TextEncoder, navigator, window */
 "use strict";
 (() => {
   const form = document.getElementById("setup");
