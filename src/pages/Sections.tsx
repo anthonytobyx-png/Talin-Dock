@@ -18,6 +18,8 @@ import { DeviceCard } from "../components/DeviceCard";
 import { Panel, Go } from "../components/primitives";
 import { CalendarContent } from "../components/ResourceState";
 import { CalendarConnections } from "../components/CalendarConnections";
+import { DeviceControls } from "../components/DeviceControls";
+import { samsungLocal, tuyaCloud } from "../integrations/unconfigured";
 export function Devices() {
   const { state } = useStore();
   return (
@@ -25,7 +27,7 @@ export function Devices() {
       <Intro
         eyebrow="YOUR CONNECTED HOME"
         title="Devices"
-        description="Two planned accessories. Neither is connected yet."
+        description="Power, timers and readings appear according to each connected device’s verified capabilities."
       />
       <div className="two-columns">
         {devices.map((device) => (
@@ -37,25 +39,42 @@ export function Devices() {
             <Panel title="Connection plan">
               <p>
                 {device.type === "tv"
-                  ? "Samsung local networking requires an optional home bridge. SmartThings is a separate cloud route to evaluate."
-                  : "Tuya cloud and local-key routes need capability and free-access verification. Initially, humidity readings only."}
+                  ? "Connect a supported Samsung integration to enable verified power, timer and remote controls. Local pairing alone does not connect the hosted app."
+                  : "Tuya cloud and local-key routes need capability and free-access verification before humidity, power or timers can be enabled."}
               </p>
               <p>
                 {device.model || "Exact model to be confirmed"} · {device.room}
               </p>
-              <p>Last updated: never · Confirmed capabilities: none</p>
+              <p>
+                Last updated: {device.updatedAt || "Not yet received"} ·
+                Confirmed capabilities:{" "}
+                {device.confirmedCapabilities
+                  .map((capability) =>
+                    capability === "powerTimer" ? "power timers" : capability,
+                  )
+                  .join(", ") || "None verified"}
+              </p>
               {state.profiles[state.activeProfile].favourites.includes(
                 device.id,
               ) && <span className="badge">Your favourite</span>}
               <Go to="Settings">Integration settings</Go>
+              <DeviceControls
+                device={device}
+                adapter={[samsungLocal, tuyaCloud].find(
+                  (adapter) => adapter.id === device.adapterId,
+                )}
+              />
             </Panel>
           </div>
         ))}
       </div>
       <Panel title="Adding more devices">
         <p>
-          Discovery and pairing are planned. A cloud-hosted web app cannot scan
-          your home network. No scan or pairing has been performed.
+          Future devices need a supported integration and secure pairing.
+          Available actions are discovered per device: on/off, timers and
+          sensors are not guaranteed for every model. Timers must run on the
+          device or a verified online service, so they do not depend on this
+          page staying open.
         </p>
       </Panel>
     </>

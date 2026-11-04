@@ -98,3 +98,15 @@ The owner identified the appliance as Devology, model Virgo-RCS12(y)-N7-1, SKU D
 Source: https://devologyhome.com/collections/large-dehumidifiers/products/devology-12l-large-dehumidifier-dev-19
 
 The dashboard previously claimed power/target/mode controls were unsupported by the household appliance. That was stronger than the evidence: the owner requested read-only humidity monitoring. The wording now explains that scope and the unverified connection. No power, target, fan or mode control was enabled; no sensor reading or timestamp is fabricated. Actual authenticated humidity data, units, update cadence and stale/offline handling remain pending a verified connection.
+
+## Power and countdown requirements — superseding humidity-only scope
+
+The owner now explicitly requests power on/off and timers for this appliance and future supported devices. The dehumidifier record permits control access in principle, but still has no confirmed capabilities and remains unconfigured. No hardware command was sent or enabled by this change.
+
+A reusable device-controls panel now exposes on/off and countdown action/duration, plus timer refresh/cancellation. The adapter-neutral timer port must create, list and cancel durable schedules on the actual device or an authenticated online service. Capability and access checks require fresh, online state, matching adapter identity, confirmed power and timer capabilities, and valid duration bounds. A generic future plug is exercised by the tests; the feature is not restricted to the two initial appliances.
+
+There is deliberately no browser countdown used to deliver device commands. Timer creation requires a valid, matching receipt with an ID, executor, action and expected due time. Acknowledgement is not presented as proof of execution. Timeouts abort local waiting without automatic retries and explain that the device may have received the request; refresh is required before retrying. Adapter/server authentication, household permissions, idempotency and durable delivery must be implemented and verified for each real integration before enabling it. No public control endpoint or cloud scheduler has been added.
+
+Existing production connections still do not implement these operations, so controls are disabled rather than simulated. Future purchases need a supported protocol/integration and verified individual capabilities; arbitrary device compatibility is not promised. Old read-only notes above are historical and superseded by this owner request. Household preferences, cloud preference schema and stored backups are unchanged.
+
+Validation: 22 unit tests, ten browser tests and five real local Pages/D1 tests passed, including timer guards and the unconfigured-device UI. Typecheck, lint and build passed. This validates the reusable boundary and unavailable state, not real appliance commands or durable schedule execution.

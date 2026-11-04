@@ -57,3 +57,7 @@ The owner authorised continuing toward a complete free hosted app and selected M
 - Calendar options explain provider-specific prerequisites. OAuth registration/consent (Google/Microsoft), encrypted CalDAV/app-password handling (iCloud), server-side sharing/privacy and actual calendar adapters are not implemented. No calendar content is fetched or cached.
 
 Cloudflare's requested guide was fetched in the prior cloud task; skills/MCP registration succeeded while OAuth remained pending there. The desktop continuation uses the owner's signed-in dashboard and repository connection. No paid plan, payment method or hardware integration is authorised.
+
+## Shared power/timer contract
+
+Power and timers are reusable capabilities, not assumptions derived from a device category. The new timer adapter contract requires durable create/list/cancel operations and receipts identifying the executor (device or online service), scheduled action and UTC due time. The browser does not implement delivery with a timeout or persist credentials/timer truth in preferences. An authenticated real route and independently verified capabilities are prerequisites. A future durable cloud implementation must enforce household ownership, validate commands server-side, use idempotency, reconcile uncertain acknowledgements and report actual execution separately from schedule acceptance.

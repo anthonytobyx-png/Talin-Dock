@@ -48,8 +48,8 @@ export function DeviceCard({
       {humidity?.stale && <p>Stale reading · updated {device.updatedAt}</p>}
       {large && (
         <p>
-          Humidity monitoring only. Device controls remain disabled until a
-          supported connection is verified.
+          Humidity, power and timers require a verified connection and support
+          from this device. Unavailable actions stay disabled.
         </p>
       )}
     </Panel>

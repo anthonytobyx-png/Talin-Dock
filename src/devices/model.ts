@@ -3,6 +3,7 @@ export type Capability =
   | "humidity"
   | "temperature"
   | "power"
+  | "powerTimer"
   | "volume"
   | "source"
   | "apps"
@@ -22,6 +23,11 @@ export interface Device {
   updatedAt: string | null;
   error?: string;
   readings: Partial<Record<"humidity" | "temperature", number>>;
+  powerTimer?: {
+    executor: "device" | "service";
+    minSeconds: number;
+    maxSeconds: number;
+  };
 }
 export const devices: Device[] = [
   {
@@ -46,7 +52,7 @@ export const devices: Device[] = [
     model: "Devology Virgo-RCS12(y)-N7-1 (DEV_19)",
     adapterId: "tuya-cloud",
     status: "unconfigured",
-    access: "read-only",
+    access: "controllable",
     confirmedCapabilities: [],
     hiddenCapabilities: [],
     updatedAt: null,

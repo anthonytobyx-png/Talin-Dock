@@ -241,3 +241,31 @@ test.describe("short tablet navigation", () => {
     });
   }
 });
+
+test("unconnected devices expose power and timers without enabling unverified commands", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  for (const name of ["Samsung TV", "Dehumidifier"]) {
+    const controls = page.getByRole("region", {
+      name: `${name} power and timers`,
+    });
+    await expect(
+      controls.getByRole("button", { name: "Turn on", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      controls.getByRole("button", { name: "Turn off", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      controls.getByRole("button", { name: "Add timer", exact: true }),
+    ).toBeDisabled();
+    await expect(controls.getByLabel("Countdown (minutes)")).toBeDisabled();
+    await expect(controls).toContainText(
+      "Keeping this page open is not a reliable timer",
+    );
+  }
+});

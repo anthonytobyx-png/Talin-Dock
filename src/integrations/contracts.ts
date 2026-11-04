@@ -34,6 +34,8 @@ export async function sendCommand(
   command: DeviceCommand,
 ): Promise<Result<void>> {
   if (
+    command.capability === "powerTimer" ||
+    (command.capability === "power" && typeof command.value !== "boolean") ||
     device.adapterId !== adapter.id ||
     !canControl(device, command.capability)
   )
