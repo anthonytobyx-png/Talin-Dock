@@ -90,3 +90,11 @@ The owner subsequently confirmed both devices are on, stated that no separate hu
 Commit `99ee6c72f81d19b2f367d43619cecf505602956e` passed GitHub run 41905460168 and Cloudflare deployment 57fd4223-216f-4662-9fa3-783d0630042a. Production serves the scrollable navigation CSS. Home/Settings navigation and explicit Update app activation were checked in a 1024x600 browser viewport; the update reloaded successfully and retained the existing room selection. No household/cloud preferences were overwritten.
 
 The owner reports both devices are linked in the Alexa app without an Echo speaker. This is useful account-linkage information but is not independently verified device capability or third-party API consent. Amazon's documented Smart Home API integrates a developer's own device cloud/add-on; the reviewed REST API does not establish a general Talin API for commanding devices belonging to other linked skills. No private Alexa cookies were extracted, no paid Alexa service was enabled, and no Alexa relay integration is claimed. Source: https://developer.amazon.com/docs/alexaplus/smarthome/rest-api-reference
+
+## Dehumidifier identity clarification
+
+The owner identified the appliance as Devology, model Virgo-RCS12(y)-N7-1, SKU DEV_19. This owner-supplied identity is now recorded in the device registry without changing its ID, room, read-only access, unconfigured status or empty confirmed capability set. Devology's official DEV_19 page confirms Smart Life app connectivity and adjustable humidity targets, but does not publish the authenticated data-point schema required for this unit. Similar Virgo model names sold by other brands are not proof of identical firmware or Tuya data-point mappings.
+
+Source: https://devologyhome.com/collections/large-dehumidifiers/products/devology-12l-large-dehumidifier-dev-19
+
+The dashboard previously claimed power/target/mode controls were unsupported by the household appliance. That was stronger than the evidence: the owner requested read-only humidity monitoring. The wording now explains that scope and the unverified connection. No power, target, fan or mode control was enabled; no sensor reading or timestamp is fabricated. Actual authenticated humidity data, units, update cadence and stale/offline handling remain pending a verified connection.

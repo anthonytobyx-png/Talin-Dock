@@ -43,6 +43,7 @@ export const devices: Device[] = [
     name: "Dehumidifier",
     type: "dehumidifier",
     room: "Bedroom",
+    model: "Devology Virgo-RCS12(y)-N7-1 (DEV_19)",
     adapterId: "tuya-cloud",
     status: "unconfigured",
     access: "read-only",

@@ -56,3 +56,5 @@ The owner reported the dashboard remained visible on the iPad without a network,
 - Select the first calendar provider only after the device-route blockers have been recorded; authorise read-only access through the provider's secure flow, never through chat.
 
 The owner subsequently confirmed both devices are on, stated that no separate hub should be needed because the iPad is local, and deferred calendars (likely iCloud). A direct Safari route remains unverified; local presence alone does not grant trusted TV TLS access or raw Tuya protocol access. Calendar implementation is deferred at the owner's request.
+
+Dehumidifier identity supplied by owner: Devology Virgo-RCS12(y)-N7-1, SKU DEV_19. No further model identification is needed. Remaining checks concern authenticated live humidity, data-point mapping/units, reporting timestamps and stale/offline behaviour. Do not infer these from another brand's Virgo manual or enable appliance controls.

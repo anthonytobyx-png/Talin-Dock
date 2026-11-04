@@ -48,8 +48,8 @@ export function DeviceCard({
       {humidity?.stale && <p>Stale reading · updated {device.updatedAt}</p>}
       {large && (
         <p>
-          Humidity readings only. Power, target and mode controls are not
-          supported by this household’s unit.
+          Humidity monitoring only. Device controls remain disabled until a
+          supported connection is verified.
         </p>
       )}
     </Panel>
