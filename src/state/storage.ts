@@ -36,6 +36,7 @@ export function decode(raw: string | null): AppState {
         out.name = p.name.trim().slice(0, 40);
       if (["charcoal", "slate", "black"].includes(p.theme)) out.theme = p.theme;
       if (typeof p.hour24 === "boolean") out.hour24 = p.hour24;
+      if (typeof p.idleReturn === "boolean") out.idleReturn = p.idleReturn;
       if (Array.isArray(p.visibleCalendars))
         out.visibleCalendars = profileIds.filter((x) =>
           p.visibleCalendars.includes(x),
@@ -59,6 +60,30 @@ export function decode(raw: string | null): AppState {
           ...new Set(layout),
         ] as AppState["household"]["layouts"][typeof room];
     }
+    const location = data.household?.weatherLocation;
+    if (location === null) fallback.household.weatherLocation = null;
+    else if (
+      location &&
+      typeof location.name === "string" &&
+      location.name.trim() &&
+      Number.isFinite(location.latitude) &&
+      Math.abs(location.latitude) <= 90 &&
+      Number.isFinite(location.longitude) &&
+      Math.abs(location.longitude) <= 180
+    )
+      fallback.household.weatherLocation = {
+        name: location.name.trim().slice(0, 100),
+        latitude: location.latitude,
+        longitude: location.longitude,
+      };
+    for (const room of rooms)
+      for (const widget of Object.keys(
+        widgetNames,
+      ) as (keyof typeof widgetNames)[]) {
+        const size = data.household?.sizes?.[room]?.[widget];
+        if (["small", "wide", "large"].includes(size))
+          fallback.household.sizes[room][widget] = size;
+      }
     return fallback;
   } catch {
     return fallback;

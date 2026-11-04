@@ -1,4 +1,24 @@
 import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.route("https://api.open-meteo.com/**", (route) =>
+    route.fulfill({
+      json: {
+        current: { temperature_2m: 11, weather_code: 3 },
+        daily: {
+          time: [
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06",
+            "2026-11-07",
+            "2026-11-08",
+          ],
+          temperature_2m_max: [12, 13, 14, 12, 11],
+          temperature_2m_min: [5, 6, 4, 3, 5],
+        },
+      },
+    }),
+  );
+});
 for (const size of [
   { width: 1024, height: 768 },
   { width: 768, height: 1024 },
@@ -85,4 +105,95 @@ test("profile dialog keyboard dismissal restores focus", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(chip).toBeFocused();
+});
+
+test("widget order, size and backup restore survive a reload", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Edit widgets" }).click();
+  await page.getByRole("button", { name: "Move Humidity earlier" }).click();
+  await page.getByLabel("Humidity widget size").selectOption("wide");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.reload();
+  const state = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("talin-dock.preferences.v1")!),
+  );
+  expect(state.household.layouts.Desk[1]).toBe("humidity");
+  expect(state.household.sizes.Desk.humidity).toBe("wide");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  const backup = structuredClone(state);
+  backup.profiles.anthony.name = "Restored Anthony";
+  await page.getByLabel("Import preferences backup").setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(backup)),
+  });
+  await expect(
+    page.getByRole("button", { name: "Replace local preferences" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Replace local preferences" }).click();
+  await page
+    .getByRole("button", { name: "Switch profile: Household", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Use Restored Anthony profile" }),
+  ).toBeVisible();
+});
+test("weather location search updates the real-provider request and persists", async ({
+  page,
+}) => {
+  await page.route("https://geocoding-api.open-meteo.com/**", (route) =>
+    route.fulfill({
+      json: {
+        results: [
+          {
+            name: "Dublin",
+            country: "Ireland",
+            latitude: 53.35,
+            longitude: -6.26,
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page.getByLabel("Town or city").fill("Dublin");
+  await page.getByRole("button", { name: "Search locations" }).click();
+  await page
+    .getByRole("button", { name: "Dublin, Ireland", exact: true })
+    .click();
+  await page.reload();
+  await expect(
+    page.getByText("Current location: Dublin, Ireland"),
+  ).toBeVisible();
+});
+test("idle return switches personal profile back to Household", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Switch profile: Household", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Use Anthony profile" }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page.getByLabel("Return to Household after 10 minutes idle").check();
+  await page.clock.fastForward(601000);
+  await expect(
+    page.getByRole("button", {
+      name: "Switch profile: Household",
+      exact: true,
+    }),
+  ).toBeVisible();
 });

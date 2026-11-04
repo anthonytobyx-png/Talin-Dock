@@ -24,9 +24,6 @@ export interface WeatherProvider {
 export interface CalendarProvider {
   read(signal: AbortSignal): Promise<Resource<CalendarEvent[]>>;
 }
-export const weatherProvider: WeatherProvider = {
-  read: async () => ({ status: "not-configured" }),
-};
 export const calendarProvider: CalendarProvider = {
   read: async () => ({ status: "not-configured" }),
 };

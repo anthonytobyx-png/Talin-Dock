@@ -10,11 +10,16 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json",
     "lint": "eslint .",
     "test": "vitest run",
     "test:browser": "playwright test",
-    "format": "prettier --write src tests public/*.webmanifest *.ts *.js *.json *.jsonc index.html .github/workflows/*.yml README.md ARCHITECTURE.md IMPLEMENTATION_STATUS.md NEXT_STEPS.md HOME_SETUP_CHECKLIST.md AGENTS.md"
+    "format": "prettier --write src tests server functions scripts public/*.webmanifest *.ts *.js *.json *.jsonc index.html .github/workflows/*.yml README.md ARCHITECTURE.md IMPLEMENTATION_STATUS.md NEXT_STEPS.md HOME_SETUP_CHECKLIST.md AGENTS.md DEPLOYMENT.md",
+    "db:migrate:local": "node scripts/wrangler.mjs d1 migrations apply DB --local",
+    "dev:cloud": "node scripts/wrangler.mjs pages dev dist --ip 127.0.0.1 --port 8788",
+    "auth:hash": "node scripts/password.mjs",
+    "test:cloud": "npm run build && playwright test --config playwright.cloud.config.ts",
+    "deploy:check": "node scripts/deploy-plan.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -22,6 +27,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261104.1",
     "@eslint/js": "^9.20.0",
     "@playwright/test": "^1.51.0",
     "@types/react": "^18.3.18",
@@ -30,10 +36,12 @@
     "eslint": "^9.20.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.14.0",
+    "jsonc-parser": "^3.3.1",
     "prettier": "^3.9.10",
     "typescript": "~5.7.3",
     "typescript-eslint": "^8.24.0",
     "vite": "^6.1.0",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "wrangler": "^4.157.0"
   }
 }

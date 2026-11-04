@@ -1179,3 +1179,132 @@ main {
     margin-top: 14px;
   }
 }
+/* Live services and configuration */
+.forecast {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0;
+}
+.forecast > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.forecast strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.forecast strong span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.header-weather .forecast {
+  display: none;
+}
+.header-weather .resource-content > .reading {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 28px;
+}
+.header-weather .resource-content > p {
+  grid-column: 2;
+}
+.header-weather .resource-content > small {
+  grid-column: 1 / -1;
+  font-size: 9px;
+}
+.resource-content > small {
+  display: block;
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.button-row button {
+  font-size: 12px;
+}
+.cloud-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+form > button {
+  margin: 12px 0;
+}
+.install-status {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.install-status button {
+  color: var(--accent);
+  font-size: 11px;
+}
+.layout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.layout-row button {
+  min-width: 44px;
+}
+.size-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.size-label select {
+  width: 96px;
+}
+.widget.size-small {
+  grid-column: span 1;
+  grid-row: auto;
+}
+.widget.size-wide {
+  grid-column: span 2;
+  grid-row: auto;
+}
+.widget.size-large {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.profile-chip {
+  min-height: 44px;
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 900px) {
+  .widget-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .widget.size-small {
+    grid-column: span 1;
+  }
+  .widget.size-large {
+    grid-row: auto;
+  }
+}
+@media (max-width: 600px) {
+  .widget.size-small,
+  .widget.size-wide,
+  .widget.size-large {
+    grid-column: span 2;
+    grid-row: auto;
+  }
+  .layout-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 12px;
+  }
+}

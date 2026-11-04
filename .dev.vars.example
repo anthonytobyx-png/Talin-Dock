@@ -1,0 +1,3 @@
+# Local development only. Run npm run auth:hash in a trusted terminal.
+# Set the resulting verifier below; never set a plain-text password here.
+TALIN_PASSWORD_HASH=

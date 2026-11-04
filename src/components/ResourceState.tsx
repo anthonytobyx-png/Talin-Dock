@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { CalendarDays, CloudSun } from "lucide-react";
 import {
   calendarProvider,
-  weatherProvider,
   type Resource,
-  type Weather,
   type CalendarEvent,
 } from "../data/resources";
 import { Go } from "./primitives";
+import { useWeather } from "../data/WeatherContext";
 export function ResourceState<T>({
   resource,
   unconfigured,
@@ -39,22 +38,7 @@ export function ResourceState<T>({
   }
 }
 export function WeatherContent() {
-  const [resource, setResource] = useState<Resource<Weather>>({
-    status: "loading",
-  });
-  useEffect(() => {
-    const controller = new AbortController();
-    weatherProvider
-      .read(controller.signal)
-      .then(setResource)
-      .catch(() =>
-        setResource({
-          status: "unavailable",
-          message: "Weather service could not be reached.",
-        }),
-      );
-    return () => controller.abort();
-  }, []);
+  const { resource } = useWeather();
   return (
     <div className="resource-content">
       <CloudSun className="weather-icon" size={34} />
@@ -68,13 +52,28 @@ export function WeatherContent() {
             <p>
               {data.location} · {data.condition}
             </p>
+            <div className="forecast">
+              {data.forecast.map((day) => (
+                <div key={day.date}>
+                  <small>
+                    {new Date(`${day.date}T12:00:00`).toLocaleDateString(
+                      undefined,
+                      { weekday: "short" },
+                    )}
+                  </small>
+                  <strong>
+                    {day.high}° <span>{day.low}°</span>
+                  </strong>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </ResourceState>
       {resource.status === "not-configured" && (
         <span className="badge">Not configured</span>
       )}
-      <Go to="Settings">Weather setup</Go>
+      <Go to="Settings">Weather settings</Go>
     </div>
   );
 }

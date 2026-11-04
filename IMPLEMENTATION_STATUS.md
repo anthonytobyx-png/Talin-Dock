@@ -1,39 +1,36 @@
-# Phase 1 implementation status
+# Cloud app implementation status
 
-## Working
+## Implemented
 
-- React/TypeScript application builds to static assets; all nine sections navigate and mode accents follow the section (Settings preserves the current mode).
-- Live device-local clock/date; three rooms with distinct default widget sets and persistent widget visibility.
-- Household plus two renameable personal profiles. Per-profile theme, clock format, future calendar visibility and favourites are persisted; household room layouts are shared.
-- Storage allowlists, version checks, invalid snapshot recovery and visible save failure. No secrets or event contents are saved.
-- Typed device IDs, types, rooms, capabilities, access, status, timestamps and readings. Capability guards reject unconfigured, hidden, stale, offline and read-only controls.
-- Separate cloud/local adapters, guarded commands with a five-second deadline, resource state and provider interfaces.
-- Manual ambient clock dialog through Quick actions; keyboard dismissal/focus handling for dialogs.
-- Official website media shortcuts and separate App Store links.
-- Manifest, Apple standalone metadata, touch icon, Pages configuration and security headers prepared.
+The React/TypeScript dashboard has nine sections, responsive navigation, Home/Computer accents, a real local clock, three room layouts, persistent widget visibility/order/size and personal profiles/preferences. Optional ten-minute idle return, backup export and reviewed restore now work. Old valid version-1 settings gain new defaults.
 
-## Explicitly unconfigured / deferred
+Monaghan, Ireland is the default weather location. The real application requests current conditions and a five-day forecast from Open-Meteo; a town search supports alternatives. A shared provider context deduplicates widgets, pauses refresh while hidden and retains a dated/stale cache on errors. No simulated weather is used in the application. Live external responses are unverified in this environment because the provider hosts are blocked; tests use explicit fixtures.
 
-Weather, calendar accounts, discovery, pairing, Samsung control, Tuya humidity, scenes, microphone/speech, computer pairing/metrics/control, USB, display detection/streaming and third-party hand-off. No real hardware or account was contacted. All TV controls and scenes are disabled.
+A generated service worker precaches public shell/assets only. First-time install does not reload the UI; later updates require an explicit action. Offline reload, persisted preferences and exclusion of API responses are exercised in browser tests. Standard PNG icons and an Apple touch icon are included. Actual iPadOS 15 installation/storage behaviour is still unverified.
 
-`src/integrations/demo.ts` contains a labelled deterministic humidity fixture used only in tests/development; it is not imported into the application. No random data or fake live connection is displayed.
+The Pages Functions API and D1 schema are real implementations, exercised against local Cloudflare runtime/SQLite. Cloud sync has shared household password authentication, PBKDF2 verifiers, hashed opaque sessions, secure HttpOnly seven-day cookies, rate limiting, origin/header checks, a 32 KB body limit, strict settings allowlisting and revision conflicts. UI sync is explicit and requires confirmation of replacement. Sessions are revoked on logout. Display profiles remain personalisation only.
 
-Advanced widget resizing/reordering, device renaming/moving/removing, room management, profile security, idle return, automatic ambient, media editing/history and configuration backup remain future work. The registry is currently static unconfigured examples. Calendar visibility preferences have no live events to filter. Profile switching is not a security boundary.
+## Not provisioned or connected
+
+- No remote D1 database, Cloudflare Pages project, production verifier or public deployment has been created. The root database ID is a local placeholder. Account binding and network access are missing.
+- The requested Cloudflare agent setup guide could not be fetched (proxy 403). It has not been read or executed. DEPLOYMENT.md records the exact blocker and pending steps.
+- Samsung TV and Tuya dehumidifier are unconfigured examples with zero confirmed capabilities. No device scan, pairing or hardware command occurred. Controls and scenes stay disabled.
+- Google, iCloud and Outlook provider options describe setup, but no private calendars are fetched. OAuth/CalDAV adapters, consent and encrypted credentials remain future work.
+- Voice, automatic ambient/dimming, companions, USB and display hand-off/streaming are not implemented. No always-on PC host is required.
 
 ## Validation
 
-See the final validation results recorded below. Browser emulation checks layout and interaction at the requested CSS dimensions; it does not establish Safari 15 compatibility, hardware memory use, native application hand-off, or latency on the iPad Air 2. The build targets Safari 15 but physical testing is still required.
+Final results are recorded below after the complete validation run. Chromium CSS-size emulation does not prove Safari 15 performance or original-prototype fidelity. All five original specifications remain unchanged. A labelled deterministic demo adapter exists solely as an opt-in development/test fixture and is never registered in the app.
 
-No original artboards/screenshots were available. The visual design follows the written direction; comparison against the original is pending. No public deployment or external infrastructure changes were made.
+### Final checks in this instance
 
-### Results from this cloud instance
-
-- `npm ci --no-audit --no-fund`: frozen-lockfile dependency install verified.
-- `npm run typecheck`: passed.
-- `npm run lint`: passed.
-- `npm test`: 9 tests passed (persistence, profile isolation, corruption/denied-storage recovery, navigation, capability/freshness gating and command deadline).
-- `npm run build`: passed; production JavaScript approximately 183 kB / 58 kB gzip, CSS approximately 16 kB / 4 kB gzip.
-- `npm run test:browser`: 3 passed. Both requested iPad dimensions exercise every section, room/widget persistence, profile name/time-format reloads, no horizontal overflow, disabled remote controls and dialog keyboard focus restoration.
-- Chromium screenshots inspected in landscape and portrait; landscape spacing adjusted after inspection. This is not a comparison with the unavailable original prototype.
-- Built assets served through Vite preview; representative room navigation passed with the prepared CSP injected into browser responses and no browser errors. Actual Cloudflare header delivery is untested because nothing was deployed.
-- Real Safari/iPad hardware, real integrations, GitHub Actions execution and a fresh published cloud task have not been tested.
+- Frozen dependency installation (`npm ci`) passed.
+- Strict frontend and backend type checking, ESLint and production build passed.
+- 15 unit tests passed: state/storage/profile/navigation/capability logic, weather parsing/cache/error handling, password verification and cookie parsing.
+- 6 UI browser tests passed: both iPad dimensions, reload persistence, dialog focus, widget order/size, reviewed backup restore, location search and idle return.
+- 5 full-stack tests passed against actual local Pages Functions/D1: unauthenticated/CSRF rejection, database persistence, unknown/oversized data rejection, revision conflicts, logout plus replayed-token denial, offline reload without API caching, browser sign-in/save/logout and durable login throttling.
+- The documented local migration command was run twice; the second run had no migrations to apply.
+- The documented full-stack development server started; with no password configured `/api/session` returned configured=false and preferences access returned 503. This verifies fail-closed setup.
+- Production screenshots inspected at 1024×768 and 768×1024, including the genuine network-unavailable weather state, with no horizontal overflow.
+- JavaScript is approximately 200 kB / 63 kB gzip; CSS approximately 17 kB / 4 kB gzip. This is build size, not a physical iPad memory/latency measurement.
+- `wrangler whoami` reports no authenticated account. Cloudflare guide/provider requests remain blocked by live network policy. No live cloud, device, provider account or GitHub Actions execution is claimed.

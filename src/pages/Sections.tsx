@@ -17,6 +17,7 @@ import { devices, canControl, type ControlCapability } from "../devices/model";
 import { DeviceCard } from "../components/DeviceCard";
 import { Panel, Go } from "../components/primitives";
 import { CalendarContent } from "../components/ResourceState";
+import { CalendarConnections } from "../components/CalendarConnections";
 export function Devices() {
   const { state } = useStore();
   return (
@@ -159,18 +160,7 @@ export function Calendars() {
         <Panel title="Your agenda">
           <CalendarContent />
         </Panel>
-        <Panel title="Connect a provider · coming later">
-          <p>
-            Web apps cannot read the iPad’s native calendar store. A future
-            provider connection will use secure authorisation and explicit
-            calendar selection.
-          </p>
-          <p>
-            Private calendars and event creation stay disabled until
-            authentication and server-side permissions are implemented.
-          </p>
-          <Go to="Settings">Visibility preferences</Go>
-        </Panel>
+        <CalendarConnections />
       </div>
     </>
   );

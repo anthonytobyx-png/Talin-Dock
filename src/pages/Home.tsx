@@ -158,8 +158,8 @@ export function Home() {
       {editing && (
         <Panel title={`Widgets in ${state.room}`} className="editor">
           <p>
-            Shared by all profiles. Toggle widgets; order follows this list.
-            Advanced sizing and reordering come later.
+            Shared by all profiles. Toggle widgets, then arrange them below.
+            Order stays the same in both orientations.
           </p>
           <div className="widget-options">
             {(Object.keys(widgetNames) as Widget[]).map((widget) => (
@@ -173,11 +173,81 @@ export function Home() {
               </label>
             ))}
           </div>
+          <div className="layout-editor">
+            {widgets.map((widget, index) => (
+              <div className="layout-row" key={widget}>
+                <strong>{widgetNames[widget]}</strong>
+                <div className="button-row">
+                  <button
+                    aria-label={`Move ${widgetNames[widget]} earlier`}
+                    disabled={index === 0}
+                    onClick={() => {
+                      const next = [...widgets];
+                      [next[index - 1], next[index]] = [
+                        next[index],
+                        next[index - 1],
+                      ];
+                      dispatch({
+                        type: "layout",
+                        room: state.room,
+                        widgets: next,
+                      });
+                    }}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    aria-label={`Move ${widgetNames[widget]} later`}
+                    disabled={index === widgets.length - 1}
+                    onClick={() => {
+                      const next = [...widgets];
+                      [next[index + 1], next[index]] = [
+                        next[index],
+                        next[index + 1],
+                      ];
+                      dispatch({
+                        type: "layout",
+                        room: state.room,
+                        widgets: next,
+                      });
+                    }}
+                  >
+                    ↓
+                  </button>
+                  <label className="size-label">
+                    Size
+                    <select
+                      aria-label={`${widgetNames[widget]} widget size`}
+                      value={
+                        state.household.sizes[state.room][widget] || "small"
+                      }
+                      onChange={(event) =>
+                        dispatch({
+                          type: "size",
+                          room: state.room,
+                          widget,
+                          size: event.target.value as
+                            "small" | "wide" | "large",
+                        })
+                      }
+                    >
+                      <option value="small">Small</option>
+                      <option value="wide">Wide</option>
+                      <option value="large">Large</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
         </Panel>
       )}
       <div className="widget-grid">
         {widgets.map((widget) => (
-          <div className={`widget widget-${widget}`} key={widget}>
+          <div
+            className={`widget widget-${widget} size-${state.household.sizes[state.room][widget] || "small"}`}
+            key={widget}
+          >
             {renderWidget(widget)}
           </div>
         ))}
@@ -198,7 +268,7 @@ export function Home() {
             {now.toLocaleDateString(undefined, { dateStyle: "full" })}
           </p>
           <div className="ambient-clock">{time}</div>
-          <p>{state.room} · Weather and devices not configured</p>
+          <p>{state.room} · Devices awaiting setup</p>
           <button onClick={() => setAmbient(false)}>Return to dashboard</button>
         </Modal>
       )}

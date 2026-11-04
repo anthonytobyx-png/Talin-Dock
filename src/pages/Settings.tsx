@@ -2,6 +2,9 @@ import { useStore } from "../state/Store";
 import { profileIds, type Theme } from "../state/model";
 import { devices } from "../devices/model";
 import { Panel } from "../components/primitives";
+import { CloudSettings } from "../components/CloudSettings";
+import { BackupSettings } from "../components/BackupSettings";
+import { WeatherSettings } from "../components/WeatherSettings";
 export function Settings() {
   const { state, dispatch } = useStore();
   const profile = state.profiles[state.activeProfile];
@@ -56,6 +59,19 @@ export function Settings() {
                   dispatch({
                     type: "preferences",
                     patch: { hour24: e.target.checked },
+                  })
+                }
+              />
+            </label>
+            <label className="setting-row">
+              Return to Household after 10 minutes idle
+              <input
+                type="checkbox"
+                checked={profile.idleReturn}
+                onChange={(e) =>
+                  dispatch({
+                    type: "preferences",
+                    patch: { idleReturn: e.target.checked },
                   })
                 }
               />
@@ -136,11 +152,14 @@ export function Settings() {
               </button>
             ))}
           </Panel>
-          <Panel title="Weather & integrations">
+          <WeatherSettings />
+          <CloudSettings />
+          <BackupSettings />
+          <Panel title="Integrations">
             <span className="badge">Not configured</span>
             <p>
-              Choose a no-cost weather provider and location before enabling
-              weather. Calendar providers require secure account authorisation.
+              Google, iCloud and Outlook calendar connections need provider
+              authorisation before any private data can be read.
             </p>
             <p>
               Device pairing and credentials will be handled by a future
@@ -148,11 +167,11 @@ export function Settings() {
             </p>
           </Panel>
           <Panel title="About this build">
-            <p>Phase 1 · Web foundation</p>
+            <p>Web app · cloud storage ready</p>
             <p>
               No devices, calendars or computers are connected. No audio is
-              recorded. Interface preferences are stored on this browser only
-              and may be cleared by Safari.
+              recorded. Local preferences may be cleared by Safari. Use backup
+              or the authenticated cloud copy to keep another copy.
             </p>
           </Panel>
         </div>

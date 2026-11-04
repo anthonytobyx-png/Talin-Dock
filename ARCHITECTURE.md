@@ -42,3 +42,18 @@ There is no backend in Phase 1. Future authenticated cloud routes may use Worker
 7. No production speech processing, companion service, USB transport, mixer or display hand-off is implemented. Sidecar is unavailable on iPad Air 2. These remain later phases.
 
 Original unresolved questions remain in `docs/specifications/OPEN_QUESTIONS.md`; the decisions above do not settle provider access terms, actual device capabilities or target-device performance. Visual comparison requires the original Main.dc.html and Portrait.dc.html or screenshots.
+
+## Cloud-app continuation: decisions superseding Phase 1
+
+The owner authorised continuing toward a complete free hosted app and selected Monaghan town, Ireland for initial weather, retaining Google, iCloud and Outlook calendar options. The earlier Phase 1 description above is historical. These changes supersede its offline, database, weather and layout deferrals:
+
+- Cloudflare Pages remains the host; Pages Functions implement `/api/*`, and D1 is now justified for shared preferences and session/revision metadata. Real cloud provisioning is blocked on account/network access. Local D1/Functions are implemented and tested, not mocked.
+- Shared household sign-in is a real access boundary for cloud preferences. Personal profiles still are not separate identities. Private calendars/device control are absent, rather than being protected only by profile switches.
+- D1 stores allowlisted preferences, monotonically incremented revisions, hashed seven-day opaque sessions and rate-limit fingerprints. Origin/custom-header checks, schema/body limits and optimistic concurrency protect mutations. See DEPLOYMENT.md for threat model, retention and production prerequisites.
+- Weather uses the free personal/non-commercial Open-Meteo endpoint, client-side, with explicit town coordinates (no geolocation permission). Monaghan town centre defaults to approximately 54.2489, -6.9683. A geocoder permits other towns. Forecasts refresh every 15 minutes while visible and on return/online; stale cached data is labelled. There are no provider keys or random readings.
+- A build-generated service worker precaches hashed public assets and the shell. Its cache version includes the asset list, HTML template and public icon/manifest contents. It excludes all API and third-party requests. New versions wait for an explicit Update app action; first installation does not reload the page. Cache persistence is still subject to Safari eviction.
+- Widget visibility, order and size are persisted household-wide; DOM order remains authoritative, with no dense packing. Backup/restore uses the same allowlisted decoder, with review before replacement. Existing version-1 snapshots gain defaults for new fields without discarding their old settings.
+- Idle return is optional per profile: pointer, keyboard and scrolling activity reset its ten-minute timer; returning from a long background suspension checks the deadline. It is convenience, not access control. Automatic ambient/dimming remains deferred.
+- Calendar options explain provider-specific prerequisites. OAuth registration/consent (Google/Microsoft), encrypted CalDAV/app-password handling (iCloud), server-side sharing/privacy and actual calendar adapters are not implemented. No calendar content is fetched or cached.
+
+Cloudflare's requested agent guide was blocked at the proxy and is not claimed as read. Deployment requires a valid account identity and live network access; saving requirements is not publishing. No payment-dependent integration, production secret, cloud database or public endpoint has been created.

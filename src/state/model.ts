@@ -37,10 +37,17 @@ export const widgetNames: Record<Widget, string> = {
   media: "Media on iPad",
   quick: "Quick actions",
 };
+export interface WeatherLocation {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+export type WidgetSize = "small" | "wide" | "large";
 export interface Profile {
   name: string;
   theme: Theme;
   hour24: boolean;
+  idleReturn: boolean;
   visibleCalendars: ProfileId[];
   favourites: string[];
 }
@@ -51,13 +58,18 @@ export interface AppState {
   section: Section;
   mode: Mode;
   profiles: Record<ProfileId, Profile>;
-  household: { layouts: Record<Room, Widget[]> };
+  household: {
+    layouts: Record<Room, Widget[]>;
+    sizes: Record<Room, Partial<Record<Widget, WidgetSize>>>;
+    weatherLocation: WeatherLocation | null;
+  };
 }
 export function defaults(): AppState {
   const base: Profile = {
     name: "Household",
     theme: "charcoal",
     hour24: true,
+    idleReturn: false,
     visibleCalendars: [...profileIds],
     favourites: [],
   };
@@ -78,6 +90,16 @@ export function defaults(): AppState {
       },
     },
     household: {
+      weatherLocation: {
+        name: "Monaghan, Ireland",
+        latitude: 54.2489,
+        longitude: -6.9683,
+      },
+      sizes: {
+        Desk: { calendar: "large", week: "wide" },
+        Kitchen: { calendar: "wide", weather: "wide", media: "wide" },
+        Bedroom: { dehumidifier: "large" },
+      },
       layouts: {
         Desk: ["calendar", "tv", "humidity", "week"],
         Kitchen: ["calendar", "weather", "temperature", "quick", "media"],
@@ -87,6 +109,12 @@ export function defaults(): AppState {
   };
 }
 export type Action =
+  | { type: "replace"; state: AppState }
+  | {
+      type: "household";
+      patch: Partial<Pick<AppState["household"], "weatherLocation">>;
+    }
+  | { type: "size"; room: Room; widget: Widget; size: WidgetSize }
   | { type: "navigate"; section: Section }
   | { type: "room"; room: Room }
   | { type: "profile"; id: ProfileId }
@@ -94,6 +122,24 @@ export type Action =
   | { type: "layout"; room: Room; widgets: Widget[] };
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case "replace":
+      return action.state;
+    case "household":
+      return { ...state, household: { ...state.household, ...action.patch } };
+    case "size":
+      return {
+        ...state,
+        household: {
+          ...state.household,
+          sizes: {
+            ...state.household.sizes,
+            [action.room]: {
+              ...state.household.sizes[action.room],
+              [action.widget]: action.size,
+            },
+          },
+        },
+      };
     case "navigate":
       return {
         ...state,

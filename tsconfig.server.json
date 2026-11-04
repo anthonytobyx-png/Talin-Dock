@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"],
+    "lib": ["ES2020", "DOM"],
+    "noEmit": true
+  },
+  "include": [
+    "functions",
+    "server",
+    "src/state/model.ts",
+    "src/state/storage.ts"
+  ]
+}

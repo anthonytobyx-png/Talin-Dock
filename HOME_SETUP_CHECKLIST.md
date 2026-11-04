@@ -35,3 +35,11 @@ Do not send tokens, pairing keys or private calendars in chat. Phase 1 needs non
 - Test each media app's iPadOS 15 availability, official website hand-off, explicit App Store link and manual return to Talin Dock. The website cannot reliably detect installed apps or launch success.
 - Home must function with every PC off. A low-power hub is optional future architecture, not a hidden requirement today.
 - Keep companion/USB/audio/display/voice testing for later phases. Check any third-party display software's cost and OS support; Sidecar does not support iPad Air 2.
+
+## Updated cloud-app checks
+
+After the approved HTTPS deployment exists, verify Monaghan weather and change/restore the town. Test offline launch after the app reports Available offline; confirm stale weather is labelled, the clock continues and private/API data is absent from the service-worker cache. Safari may evict storage, so keep an exported backup.
+
+Sign in to household cloud storage; explicitly save/read preferences from a second browser, confirm replacement behaviour, then sign out and confirm private API access is denied. Local names/preferences remain on the browser after logout. Never use the published test-only password for production. Test backup import cancellation and restore, widget order/size and optional idle return on the actual iPad.
+
+No Cloudflare deployment or successful live weather response has been verified yet. Those account/network steps precede this checklist; they cannot be replaced by testing on the iPad or home computer.

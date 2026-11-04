@@ -26,6 +26,7 @@ import {
   Deferred,
 } from "./pages/Sections";
 import { Modal } from "./components/primitives";
+import { InstallStatus } from "./components/InstallStatus";
 const icons = {
   Home: HomeIcon,
   Devices: LayoutGrid,
@@ -176,6 +177,7 @@ export default function App() {
           </div>
         )}
         {page(state.section)}
+        <InstallStatus />
       </main>
       {profilesOpen && (
         <Modal title="Who’s using Talin Dock?" close={close}>
@@ -205,7 +207,7 @@ export default function App() {
           ))}
           <p>
             No login. Profiles are display preferences and do not protect
-            private data. Idle auto-return is not implemented.
+            private data. Idle auto-return can be enabled in Settings.
           </p>
         </Modal>
       )}
