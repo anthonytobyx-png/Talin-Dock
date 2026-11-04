@@ -1,0 +1,16 @@
+{
+  "name": "Talin Dock",
+  "short_name": "Talin Dock",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#161719",
+  "theme_color": "#161719",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
