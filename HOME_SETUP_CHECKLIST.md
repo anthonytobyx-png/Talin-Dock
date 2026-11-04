@@ -42,4 +42,6 @@ After the approved HTTPS deployment exists, verify Monaghan weather and change/r
 
 Sign in to household cloud storage; explicitly save/read preferences from a second browser, confirm replacement behaviour, then sign out and confirm private API access is denied. Local names/preferences remain on the browser after logout. Never use the published test-only password for production. Test backup import cancellation and restore, widget order/size and optional idle return on the actual iPad.
 
-No Cloudflare deployment or successful live weather response has been verified yet. Those account/network steps precede this checklist; they cannot be replaced by testing on the iPad or home computer.
+A live Monaghan weather response was verified in the previous cloud task. The remote free D1 schema is now provisioned; see DEPLOYMENT.md for Pages publication and authentication status. Physical iPad checks remain required.
+
+Hosted dashboard: https://talin-dock.pages.dev/. The desktop browser showed live Monaghan weather and Available offline. Complete the production verifier setup in DEPLOYMENT.md before testing cloud sign-in. Neither this desktop check nor the prior browser tests proves physical iPad compatibility.

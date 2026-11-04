@@ -4,7 +4,7 @@
 
 The React/TypeScript dashboard has nine sections, responsive navigation, Home/Computer accents, a real local clock, three room layouts, persistent widget visibility/order/size and personal profiles/preferences. Optional ten-minute idle return, backup export and reviewed restore now work. Old valid version-1 settings gain new defaults.
 
-Monaghan, Ireland is the default weather location. The real application requests current conditions and a five-day forecast from Open-Meteo; a town search supports alternatives. A shared provider context deduplicates widgets, pauses refresh while hidden and retains a dated/stale cache on errors. No simulated weather is used in the application. Live external responses are unverified in this environment because the provider hosts are blocked; tests use explicit fixtures.
+Monaghan, Ireland is the default weather location. The real application requests current conditions and a five-day forecast from Open-Meteo; a town search supports alternatives. A shared provider context deduplicates widgets, pauses refresh while hidden and retains a dated/stale cache on errors. No simulated weather is used in the application. The prior cloud continuation verified a live Monaghan current/five-day response; automated tests use explicit fixtures.
 
 A generated service worker precaches public shell/assets only. First-time install does not reload the UI; later updates require an explicit action. Offline reload, persisted preferences and exclusion of API responses are exercised in browser tests. Standard PNG icons and an Apple touch icon are included. Actual iPadOS 15 installation/storage behaviour is still unverified.
 
@@ -12,8 +12,8 @@ The Pages Functions API and D1 schema are real implementations, exercised agains
 
 ## Not provisioned or connected
 
-- No remote D1 database, Cloudflare Pages project, production verifier or public deployment has been created. The root database ID is a local placeholder. Account binding and network access are missing.
-- The requested Cloudflare agent setup guide could not be fetched (proxy 403). It has not been read or executed. DEPLOYMENT.md records the exact blocker and pending steps.
+- Free D1 `talin-dock` is provisioned with the production schema, and its real ID is bound in root wrangler.jsonc. The desktop continuation has Cloudflare dashboard and GitHub connection access. See DEPLOYMENT.md for the current Pages and verifier status.
+- The prior cloud task fetched the guide and installed 19 skills plus MCP registration; cloud-environment OAuth was still pending. DEPLOYMENT.md preserves those results.
 - Samsung TV and Tuya dehumidifier are unconfigured examples with zero confirmed capabilities. No device scan, pairing or hardware command occurred. Controls and scenes stay disabled.
 - Google, iCloud and Outlook provider options describe setup, but no private calendars are fetched. OAuth/CalDAV adapters, consent and encrypted credentials remain future work.
 - Voice, automatic ambient/dimming, companions, USB and display hand-off/streaming are not implemented. No always-on PC host is required.
@@ -22,7 +22,7 @@ The Pages Functions API and D1 schema are real implementations, exercised agains
 
 Final results are recorded below after the complete validation run. Chromium CSS-size emulation does not prove Safari 15 performance or original-prototype fidelity. All five original specifications remain unchanged. A labelled deterministic demo adapter exists solely as an opt-in development/test fixture and is never registered in the app.
 
-### Final checks in this instance
+### Previous implementation validation
 
 - Frozen dependency installation (`npm ci`) passed.
 - Strict frontend and backend type checking, ESLint and production build passed.
@@ -33,4 +33,14 @@ Final results are recorded below after the complete validation run. Chromium CSS
 - The documented full-stack development server started; with no password configured `/api/session` returned configured=false and preferences access returned 503. This verifies fail-closed setup.
 - Production screenshots inspected at 1024×768 and 768×1024, including the genuine network-unavailable weather state, with no horizontal overflow.
 - JavaScript is approximately 200 kB / 63 kB gzip; CSS approximately 17 kB / 4 kB gzip. This is build size, not a physical iPad memory/latency measurement.
-- `wrangler whoami` reports no authenticated account. Cloudflare guide/provider requests remain blocked by live network policy. No live cloud, device, provider account or GitHub Actions execution is claimed.
+- `wrangler whoami` reports no authenticated account. The later cloud task resolved network reachability; its recovered validation is recorded below. No live cloud, device, provider account or GitHub Actions execution is claimed.
+
+## Recovered cloud setup — 2026-11-04
+
+The prior cloud task fetched Cloudflare's official agent guide, installed 19 Cloudflare skills under `~/.agents/skills`, and registered `https://mcp.cloudflare.com/mcp` in `~/.codex/config.toml`. MCP OAuth and Wrangler authentication were still incomplete in that isolated cloud environment. The optional beta `cf` CLI was not installed. These installations do not imply installation or authentication on this Windows PC.
+
+That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, including real Monaghan current conditions and five forecast days. It reran `npm ci`, typecheck, lint, build, 15 unit tests, six browser tests and five local full-stack tests successfully. These are recovered historical results, not newly run Windows checks. Physical iPad/Safari validation remains outstanding.
+
+## Desktop hosting — 2026-11-04
+
+Production is deployed at https://talin-dock.pages.dev/ from `feat/cloud-app`. Cloudflare reran typecheck, lint, 15 unit tests and build successfully. Live weather, offline-readiness status, HTTPS security headers and fail-closed unconfigured API behaviour were checked. Production verifier setup and authenticated hosted sync remain pending. Build audit reports development-toolchain vulnerabilities; no application dependency upgrade was included.

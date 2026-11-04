@@ -2,15 +2,15 @@
 
 ## Current state
 
-The app, Pages Functions API, D1 schema, security boundary and offline build are implemented and tested locally. No Cloudflare account is authenticated in this environment. No cloud database, Pages project, public URL or production password has been created.
+The app, Pages Functions API, D1 schema, security boundary and offline build passed the previous cloud task's checks. The desktop continuation now has signed-in Cloudflare dashboard access and a connected GitHub repository. Free D1 `talin-dock` was created in Western Europe with ID `a8e61d46-75fc-45e4-9282-a7f713dc4721`; its three application tables and session-expiry index were verified in the dashboard. The real database ID is committed in root `wrangler.jsonc`. The household production password verifier is not yet configured.
 
 The owner's latest request authorises continuing toward free Cloudflare hosting. Never activate a paid plan, add a payment method or choose a billable integration. Account authentication and any requested consent remain the owner's responsibility.
 
-The requested guide is https://developers.cloudflare.com/agent-setup/prompt.md. Fetching it was blocked by the environment's enforced network policy (HTTP proxy 403). It has **not been read or executed**. Fetch and follow its applicable account setup instructions once network access is active; do not substitute these local instructions for claiming that guide completed.
+Cloudflare's official agent guide was fetched and followed in the previous cloud task. Its recovered setup and validation record appears below.
 
 ## Access prerequisites
 
-Environment settings contain a saved draft with custom domains `developers.cloudflare.com`, `api.cloudflare.com`, `api.open-meteo.com`, `geocoding-api.open-meteo.com` and `open-meteo.com`, plus a `CLOUDFLARE_API_TOKEN` proxy-secret requirement for `api.cloudflare.com`. Saving that draft does not apply it automatically. The live environment must report the domains enforced and credential ready, and the actual operation must succeed.
+The earlier cloud network blocker was resolved in that environment. The desktop continuation uses the signed-in Cloudflare dashboard and GitHub Pages integration; it has not authenticated local Wrangler or installed the isolated cloud task's tools on this PC.
 
 Use Cloudflare's official agent setup flow after reading it. If using an API token instead, provide a scoped token securely in environment settings, never in chat or a tracked file. The needed operations are Pages project/deployment management, D1 database creation/migrations and account selection. Prefer a token restricted to the intended account with Pages Edit and D1 Edit, plus the read permission needed to identify that account; do not use a global API key. Verify current permission names/requirements against the official flow. An account ID is non-secret but must be selected from actual authorised accounts, not guessed.
 
@@ -18,13 +18,13 @@ Use Cloudflare's official agent setup flow after reading it. If using an API tok
 
 ## Provision and deploy after account access works
 
-Commands below describe the production steps; they have not been run against a cloud account. The local equivalent migration, runtime and browser flows have been tested. Check current account resources first, reuse only the correct project's resources, and never overwrite unrelated projects.
+Commands below are the CLI reference; desktop provisioning currently uses the dashboard and GitHub integration. The local equivalent migration, runtime and browser flows have been tested. Check current account resources first, reuse only the correct project's resources, and never overwrite unrelated projects.
 
 1. Run `node scripts/wrangler.mjs pages project list` and `node scripts/wrangler.mjs d1 list`. If necessary set `CLOUDFLARE_ACCOUNT_ID` for the intended account only. Verify the account uses the Free plan and do not upgrade it.
 2. If no project/database exists for Talin Dock, create them:
 
    ```sh
-   node scripts/wrangler.mjs pages project create talin-dock --production-branch main
+   node scripts/wrangler.mjs pages project create talin-dock --production-branch feat/cloud-app
    node scripts/wrangler.mjs d1 create talin-dock
    ```
 
@@ -41,7 +41,7 @@ Commands below describe the production steps; they have not been run against a c
    Use a password manager and a long unique passphrase. Do not commit the verifier, paste it into chat or set it as a `VITE_*` variable. Preview environments also need their own correctly configured secret if sync is enabled there. Without a valid verifier and database, the API fails closed and the UI remains local-only. Rotating this verifier changes the login password; revoke existing sessions separately if access was compromised.
 
 6. Run `npm ci`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:browser` and `npm run test:cloud`. The cloud test harness creates a disposable **local** D1 database and uses a public test-only password. It never authenticates or provisions Cloudflare.
-7. Run `npm run build`, then `node scripts/wrangler.mjs pages deploy dist --project-name talin-dock --branch main` after all prerequisites are verified. This publishes the static assets and `functions/api/[[path]].ts`. No paid service or D1 plan change is required by this design.
+7. Run `npm run build`, then `node scripts/wrangler.mjs pages deploy dist --project-name talin-dock --branch feat/cloud-app` after all prerequisites are verified. This publishes the static assets and `functions/api/[[path]].ts`. No paid service or D1 plan change is required by this design.
 8. Validate the returned actual HTTPS URL: security headers, service-worker install, online then offline reload, Monaghan weather, session status, unauthenticated API denial, real browser sign-in, saving/loading on a second browser, stale-revision conflict, logout and session revocation. Confirm `_routes.json` limits Functions execution to API paths. Record the actual URL only after successful deployment. GitHub Actions CI execution and real Cloudflare quota behaviour still need separate observation.
 
 ## Storage and security
@@ -57,3 +57,21 @@ No credentials or calendar content are stored in localStorage. Non-sensitive pre
 ## Operating within the free tier
 
 Static asset requests are served by Pages; Functions are reserved for `/api/*`. Weather goes directly to Open-Meteo's personal/non-commercial service and refreshes at most every 15 minutes while visible (with a cached fallback). Cloud sync is explicit, not a request on every clock tick or setting change. No paid database, ongoing PC host or credit card is part of the architecture. Provider limits/terms may change; confirm the account's actual free quotas before publication and monitor use without upgrading automatically.
+
+## Recovered cloud setup — 2026-11-04
+
+The prior cloud task fetched Cloudflare's official agent guide, installed 19 Cloudflare skills under `~/.agents/skills`, and registered `https://mcp.cloudflare.com/mcp` in `~/.codex/config.toml`. MCP OAuth and Wrangler authentication were still incomplete in that isolated cloud environment. The optional beta `cf` CLI was not installed. These installations do not imply installation or authentication on this Windows PC.
+
+That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, including real Monaghan current conditions and five forecast days. It reran `npm ci`, typecheck, lint, build, 15 unit tests, six browser tests and five local full-stack tests successfully. These are recovered historical results, not newly run Windows checks. Physical iPad/Safari validation remains outstanding.
+
+## Desktop provisioning — 2026-11-04
+
+- Cloudflare account: `be46faf4dc2aa5b39e703ec5103d67c1`; no existing Pages projects or D1 databases were present before setup.
+- D1 dashboard reports free hard limits: 10 databases, 5 million rows read/day, 100,000 rows written/day and 5 GB total storage. No upgrade or payment method was selected.
+- Initial migration SQL was executed through the D1 console, then verified via sqlite_master. Future `wrangler d1 migrations apply` can safely run the idempotent initial migration and record Wrangler migration bookkeeping; this console application did not create that bookkeeping table.
+- Pages source is `anthonytobyx-png/Talin-Dock`, production branch `feat/cloud-app`, output `dist`. Build command: `npm run typecheck && npm run lint && npm test && npm run build`.
+- Windows file creation failed in this chat's workspace. Source was read and the binding committed through the connected GitHub API; the production build runs in Cloudflare's build environment. No application code or dependencies changed.
+
+- Initial production deployment succeeded at https://talin-dock.pages.dev/ from commit `0668c15`. Typecheck, lint, 15 unit tests and build passed in Cloudflare. The live dashboard showed real Monaghan weather and reported offline readiness. HTTPS responses include CSP, nosniff, no-referrer and denied camera/microphone/geolocation permissions. `/api/session` returns configured=false/authenticated=false; unauthenticated preferences reads return 503 until the verifier is configured. Authenticated sync and physical iPad checks are still pending.
+- `/password-setup.html` is a browser-only administrative helper for producing the existing PBKDF2 verifier format. It makes no network requests and persists no credentials. The owner must choose the passphrase, copy its verifier into the encrypted production secret `TALIN_PASSWORD_HASH`, save and redeploy. The public test harness password must never be used.
+- Build-time npm audit reported 8 moderate and 2 critical findings in development tooling (Vitest/Tinypool and typescript-eslint/minimatch). They are not runtime UI dependencies. No dependency upgrades were attempted as part of provisioning; toolchain remediation remains separate tracked work.

@@ -52,9 +52,9 @@ Browser checks use `/usr/bin/chromium` or `CHROMIUM_PATH`. `test:cloud` uses Clo
 
 ## Hosting
 
-Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. No public deployment or production database exists yet. See [DEPLOYMENT.md](DEPLOYMENT.md) for account setup, tested local commands, missing access and exact remaining provisioning steps. A database ID placeholder must be replaced before remote deployment. No paid service or PC host is needed.
+Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. Live dashboard: https://talin-dock.pages.dev/. A free D1 database is provisioned. Household cloud sync remains disabled until the owner configures its production password verifier; see DEPLOYMENT.md. See [DEPLOYMENT.md](DEPLOYMENT.md) for account setup, tested local commands, missing access and exact remaining provisioning steps. The root Wrangler config now binds the provisioned D1 database. No paid service or PC host is needed.
 
-The requested Cloudflare agent guide could not be fetched because the current environment network policy blocks its host. This is recorded in deployment status; it has not been read or executed. The saved environment draft contains the needed domains and secure API-token requirement.
+The prior cloud task fetched Cloudflare's official guide, installed skills and registered MCP. Those environment-specific setup and validation results are preserved in DEPLOYMENT.md.
 
 ## iPad and integration limits
 
