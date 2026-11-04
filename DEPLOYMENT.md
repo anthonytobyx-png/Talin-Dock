@@ -83,5 +83,13 @@ That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, 
 - Live `/api/session` reports configured=true. A separate unauthenticated client receives 401 for private preferences; a cross-origin login POST receives 403. API responses are no-store.
 - The live browser shows Signed in. Read cloud copy successfully returned cloud revision 1, confirming an existing saved copy is persisted in remote D1 and readable through the authenticated API. Existing cloud/local preferences were not overwritten for verification. Second-device restore, hosted stale-write conflict and hosted logout/replayed-cookie checks remain acceptance checks; their local full-stack equivalents passed.
 - GitHub Actions run 41896097954 passed typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests (27 tests). This includes the browser-only verifier helper test. Cloudflare's secret-enabled rebuild also passed its configured typecheck/lint/unit/build checks.
-- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The previously documented development-toolchain findings remain unresolved.
+- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The development-toolchain findings were resolved in the final cloud review below.
 - No paid plan, payment method, billable integration or PC hosting dependency was activated. Physical iPad/Safari checks and calendar/device integrations remain outside this deployment verification.
+
+## Final cloud review — 2026-11-04
+
+The cloud checkout was brought up to date with the desktop continuation. Independent live browser checks passed for dashboard rendering, offline readiness and offline reload; the service-worker cache contained no API paths and no page errors occurred. HTTPS/security headers, configured session status, signed-out preferences denial (401), cross-origin login denial (403) and no-store API responses were verified again.
+
+Development-toolchain advisories were resolved by moving Vitest to 5.1.0 and overriding minimatch to 11.0.4 or later only within typescript-estree. The latter still uses the supported `minimatch()` interface; remove this narrow override when its upstream dependency is patched. Full npm audit reports zero vulnerabilities. Typecheck, lint, build and all 27 local tests pass. No application source, production secret, schema or household preferences changed in this review. The existing GitHub-connected Pages pipeline deploys pushes to `feat/cloud-app`; no separate Cloudflare CLI login is needed for that path.
+
+Physical iPad installation/performance checks and owner-authenticated second-device acceptance remain the final manual checks. The isolated cloud browser does not inherit the Windows browser's household session.

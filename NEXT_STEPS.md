@@ -1,6 +1,6 @@
 # Remaining steps
 
-1. Hosting, encrypted production verifier setup and authenticated cloud reads are complete. Continue the second-device/iPad acceptance checks recorded in DEPLOYMENT.md. Never request passwords or tokens in chat.
+1. Hosting, encrypted production verifier setup and authenticated cloud reads are complete. The final cloud review also verified live offline reload/security and resolved all npm audit findings. Continue the second-device/iPad acceptance checks recorded in DEPLOYMENT.md. Never request passwords or tokens in chat.
 2. The free D1 database is provisioned, its initial schema applied, and its actual ID committed. Pages is deployed with its encrypted production verifier. An authenticated read returned persisted cloud revision 1; remaining hosted two-browser conflict/restore/logout checks are recorded in DEPLOYMENT.md.
 3. Confirm the live Monaghan weather response and provider terms/attribution on the deployed app. Forecast parsing, requests, cache/stale behaviour and location selection have automated tests; a live Monaghan API response was verified by the prior cloud task.
 4. Run HOME_SETUP_CHECKLIST.md on the iPad: Safari 15, install, offline launch, storage persistence/eviction, touch/portrait/landscape, performance and app hand-off.

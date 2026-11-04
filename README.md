@@ -46,13 +46,13 @@ Browser checks use `/usr/bin/chromium` or `CHROMIUM_PATH`. `test:cloud` uses Clo
 - Household plus two renameable personal profiles; separate themes, clock formats, favourites and future calendar visibility. Optional ten-minute idle return.
 - Live Open-Meteo current weather and five-day forecast; location search, loading/error/stale states and cached fallback. One shared refresh per app, paused while hidden.
 - Export/import of allowlisted non-sensitive preferences, with confirmation before restoration.
-- Cloud storage UI and Pages Functions/D1 implementation: shared household login, rate limits, seven-day revocable cookies, schema/body limits and revision conflicts. It needs a real deployment and configured secret to run online.
+- Cloud storage UI and deployed Pages Functions/D1 API: shared household login, rate limits, seven-day revocable cookies, schema/body limits and revision conflicts. Production sign-in is configured.
 - Installable manifest, standard icons, offline static shell and explicit app-update action. APIs are never service-worker cached.
 - Media service website links and explicit App Store choices; iPadOS decides any native app hand-off.
 
 ## Hosting
 
-Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. Live dashboard: https://talin-dock.pages.dev/. A free D1 database is provisioned. Household cloud sign-in is configured and an authenticated read of cloud revision 1 has been verified; see DEPLOYMENT.md. See [DEPLOYMENT.md](DEPLOYMENT.md) for account setup, tested local commands, missing access and exact remaining provisioning steps. The root Wrangler config now binds the provisioned D1 database. No paid service or PC host is needed.
+Selected host: **Cloudflare Pages Free + Pages Functions + D1 Free**. Live dashboard: https://talin-dock.pages.dev/. A free D1 database is provisioned. Household cloud sign-in is configured and an authenticated read of cloud revision 1 has been verified; see DEPLOYMENT.md. See [DEPLOYMENT.md](DEPLOYMENT.md) for setup history, tested commands and remaining device acceptance checks. The root Wrangler config now binds the provisioned D1 database. No paid service or PC host is needed.
 
 The prior cloud task fetched Cloudflare's official guide, installed skills and registered MCP. Those environment-specific setup and validation results are preserved in DEPLOYMENT.md.
 

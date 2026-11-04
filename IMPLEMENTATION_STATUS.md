@@ -10,7 +10,7 @@ A generated service worker precaches public shell/assets only. First-time instal
 
 The Pages Functions API and D1 schema are real implementations, exercised against local Cloudflare runtime/SQLite. Cloud sync has shared household password authentication, PBKDF2 verifiers, hashed opaque sessions, secure HttpOnly seven-day cookies, rate limiting, origin/header checks, a 32 KB body limit, strict settings allowlisting and revision conflicts. UI sync is explicit and requires confirmation of replacement. Sessions are revoked on logout. Display profiles remain personalisation only.
 
-## Not provisioned or connected
+## Hosted status and remaining integrations
 
 - Free D1 `talin-dock` is provisioned with the production schema, and its real ID is bound in root wrangler.jsonc. The desktop continuation has Cloudflare dashboard and GitHub connection access. See DEPLOYMENT.md for the current Pages and verifier status.
 - The prior cloud task fetched the guide and installed 19 skills plus MCP registration; cloud-environment OAuth was still pending. DEPLOYMENT.md preserves those results.
@@ -41,7 +41,7 @@ The prior cloud task fetched Cloudflare's official agent guide, installed 19 Clo
 
 That task verified unrestricted HTTP reachability to Cloudflare and Open-Meteo, including real Monaghan current conditions and five forecast days. It reran `npm ci`, typecheck, lint, build, 15 unit tests, six browser tests and five local full-stack tests successfully. These are recovered historical results, not newly run Windows checks. Physical iPad/Safari validation remains outstanding.
 
-## Desktop hosting — 2026-11-04
+## Initial desktop hosting — 2026-11-04 (historical)
 
 Production is deployed at https://talin-dock.pages.dev/ from `feat/cloud-app`. Cloudflare reran typecheck, lint, 15 unit tests and build successfully. Live weather, offline-readiness status, HTTPS security headers and fail-closed unconfigured API behaviour were checked. Production verifier setup and authenticated hosted sync remain pending. Build audit reports development-toolchain vulnerabilities; no application dependency upgrade was included.
 
@@ -52,5 +52,13 @@ Production is deployed at https://talin-dock.pages.dev/ from `feat/cloud-app`. C
 - Live `/api/session` reports configured=true. A separate unauthenticated client receives 401 for private preferences; a cross-origin login POST receives 403. API responses are no-store.
 - The live browser shows Signed in. Read cloud copy successfully returned cloud revision 1, confirming an existing saved copy is persisted in remote D1 and readable through the authenticated API. Existing cloud/local preferences were not overwritten for verification. Second-device restore, hosted stale-write conflict and hosted logout/replayed-cookie checks remain acceptance checks; their local full-stack equivalents passed.
 - GitHub Actions run 41896097954 passed typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests (27 tests). This includes the browser-only verifier helper test. Cloudflare's secret-enabled rebuild also passed its configured typecheck/lint/unit/build checks.
-- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The previously documented development-toolchain findings remain unresolved.
+- A production-only dependency audit (`npm audit --omit=dev`) reported zero vulnerabilities. The development-toolchain findings were subsequently resolved; see the final cloud review below.
 - No paid plan, payment method, billable integration or PC hosting dependency was activated. Physical iPad/Safari checks and calendar/device integrations remain outside this deployment verification.
+
+## Final cloud review — 2026-11-04
+
+- Synced the existing checkout to the desktop continuation on `feat/cloud-app`, preserving the earlier cloud notes in a named Git stash. Production was already deployed; isolated cloud CLI authentication is not required to use the hosted app.
+- Independently verified production HTTPS/security headers, configured=true session status, 401 for signed-out preferences, 403 for cross-origin login, no-store API responses, service-worker installation and successful offline reload. Browser checks found no API paths in Cache Storage and no JavaScript page errors.
+- Upgraded development-only Vitest from 3.2.7 to 5.1.0 to remove vulnerable mocker/Tinypool dependencies. Added a scoped minimatch 11 override only for typescript-estree, whose used `minimatch()` API remains supported. Remove the override once typescript-eslint declares a patched version itself. Application runtime dependencies and source remain unchanged.
+- Full `npm audit` now reports zero vulnerabilities, including development dependencies. Typecheck, lint, build, 15 unit tests, seven browser tests and five local full-stack tests passed. Lint/typecheck were also checked after the scoped override.
+- Owner sign-in and remote cloud revision 1 were verified by the desktop continuation. This isolated cloud browser has no owner session; hosted authenticated conflict/restore/logout checks and physical iPad acceptance remain outstanding. No production preferences were overwritten and no password was requested or reset.
