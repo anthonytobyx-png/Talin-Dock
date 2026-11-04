@@ -6,7 +6,7 @@
     {
       "binding": "DB",
       "database_name": "talin-dock",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "a8e61d46-75fc-45e4-9282-a7f713dc4721",
       "migrations_dir": "migrations",
     },
   ],
