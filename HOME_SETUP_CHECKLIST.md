@@ -47,3 +47,12 @@ A live Monaghan weather response was verified in the previous cloud task. The re
 Hosted dashboard: https://talin-dock.pages.dev/. The desktop browser showed live Monaghan weather and Available offline. The production verifier is configured; test household cloud sign-in with the owner’s existing passphrase. Neither this desktop check nor the prior browser tests proves physical iPad compatibility.
 
 The owner reported the dashboard remained visible on the iPad without a network, alongside an outdated “Reloading offline is not supported yet” banner. The banner has been corrected to describe available local features and the internet requirement for live weather/cloud sync. A visible open page alone does not establish a cold offline launch; check reload and reopening separately.
+
+## Current home follow-up
+
+- TV local identity and physical pairing were verified on 2026-11-04; no control commands were tested and no hosted route is configured. Identify an existing independent home hub before enabling device controls in the hosted app.
+- Confirm dehumidifier manufacturer/model in Smart Life and its authenticated humidity data point/unit/time semantics; LAN advertisements alone do not identify the product or prove sensor access.
+- On the iPad, check Settings remains reachable with browser bars/keyboard visible, then check Home/profile navigation, 44px touch targets, update acceptance and cold offline reopening. The desktop fix and tests preserve preferences; they do not prove Safari hardware behaviour.
+- Select the first calendar provider only after the device-route blockers have been recorded; authorise read-only access through the provider's secure flow, never through chat.
+
+The owner subsequently confirmed both devices are on, stated that no separate hub should be needed because the iPad is local, and deferred calendars (likely iCloud). A direct Safari route remains unverified; local presence alone does not grant trusted TV TLS access or raw Tuya protocol access. Calendar implementation is deferred at the owner's request.

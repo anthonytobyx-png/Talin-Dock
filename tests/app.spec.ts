@@ -197,3 +197,47 @@ test("idle return switches personal profile back to Household", async ({
     }),
   ).toBeVisible();
 });
+
+test.describe("short tablet navigation", () => {
+  test.use({ hasTouch: true });
+  for (const size of [
+    { width: 1024, height: 600 },
+    { width: 768, height: 700 },
+  ]) {
+    test(`Settings stays reachable above the profile footer at ${size.width}x${size.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(size);
+      await page.goto("/");
+      const navigation = page.getByRole("navigation");
+      await navigation
+        .getByRole("button", { name: "Settings", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", { name: "Settings", exact: true }),
+      ).toBeVisible();
+      await navigation
+        .getByRole("button", { name: "Home", exact: true })
+        .click();
+      await expect(
+        page.getByRole("button", { name: "Edit widgets", exact: true }),
+      ).toBeVisible();
+      const target = await navigation
+        .getByRole("button", { name: "Home", exact: true })
+        .boundingBox();
+      expect(target!.height).toBeGreaterThanOrEqual(44);
+      expect(target!.width).toBeGreaterThanOrEqual(44);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page
+        .getByRole("button", { name: "Open profiles", exact: true })
+        .click();
+      await expect(
+        page.getByRole("button", { name: "Use Anthony profile" }),
+      ).toBeVisible();
+    });
+  }
+});

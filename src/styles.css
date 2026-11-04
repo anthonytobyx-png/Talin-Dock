@@ -208,6 +208,7 @@ nav {
   flex-direction: column;
   gap: 3px;
   min-height: 0;
+  overflow-y: auto;
 }
 .nav-item {
   justify-content: flex-start;
@@ -226,6 +227,7 @@ nav {
   margin-top: auto;
 }
 .sidebar-bottom {
+  flex-shrink: 0;
   padding-top: 18px;
 }
 .profile-button {
