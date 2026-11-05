@@ -19,6 +19,10 @@ test("private preferences require authentication and same-origin writes", async 
     authenticated: false,
   });
   expect((await request.get("/api/preferences")).status()).toBe(401);
+  expect((await request.get("/api/device-actions")).status()).toBe(401);
+  expect(
+    (await request.post("/api/device-actions", { data: {} })).status(),
+  ).toBe(403);
   expect(
     (await request.put("/api/preferences", { data: defaults() })).status(),
   ).toBe(403);
@@ -40,6 +44,34 @@ test("D1 persists preferences, rejects stale revisions and revokes sessions", as
   expect(cookie).toContain("Secure");
   expect(cookie).toContain("SameSite=Strict");
   const read = await request.get("/api/preferences");
+  const actions = await request.get("/api/device-actions");
+  expect(actions.headers()["cache-control"]).toBe("no-store");
+  expect(await actions.json()).toEqual({ devices: {} });
+  expect(
+    (
+      await request.post("/api/device-actions", {
+        headers,
+        data: {
+          deviceId: "tuya-dehumidifier",
+          action: "on",
+          requestId: "00000000-0000-4000-8000-000000000001",
+        },
+      })
+    ).status(),
+  ).toBe(503);
+  expect(
+    (
+      await request.post("/api/device-actions", {
+        headers,
+        data: {
+          deviceId: "tuya-dehumidifier",
+          action: "on",
+          requestId: "00000000-0000-4000-8000-000000000001",
+          url: "https://evil.example",
+        },
+      })
+    ).status(),
+  ).toBe(400);
   expect(read.headers()["cache-control"]).toBe("no-store");
   const snapshot = await read.json();
   const state = defaults();

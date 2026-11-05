@@ -19,6 +19,7 @@ import { Panel, Go } from "../components/primitives";
 import { CalendarContent } from "../components/ResourceState";
 import { CalendarConnections } from "../components/CalendarConnections";
 import { DeviceControls } from "../components/DeviceControls";
+import { AlexaPowerControls } from "../components/AlexaPowerControls";
 import { samsungLocal, tuyaCloud } from "../integrations/unconfigured";
 export function Devices() {
   const { state } = useStore();
@@ -58,6 +59,7 @@ export function Devices() {
                 device.id,
               ) && <span className="badge">Your favourite</span>}
               <Go to="Settings">Integration settings</Go>
+              <AlexaPowerControls deviceId={device.id} />
               <DeviceControls
                 device={device}
                 adapter={[samsungLocal, tuyaCloud].find(

@@ -61,3 +61,11 @@ Cloudflare's requested guide was fetched in the prior cloud task; skills/MCP reg
 ## Shared power/timer contract
 
 Power and timers are reusable capabilities, not assumptions derived from a device category. The new timer adapter contract requires durable create/list/cancel operations and receipts identifying the executor (device or online service), scheduled action and UTC due time. The browser does not implement delivery with a timeout or persist credentials/timer truth in preferences. An authenticated real route and independently verified capabilities are prerequisites. A future durable cloud implementation must enforce household ownership, validate commands server-side, use idempotency, reconcile uncertain acknowledgements and report actual execution separately from schedule acceptance.
+
+## Free Alexa route and durable countdowns
+
+Talin can use the existing Alexa manufacturer links through Virtual Smart Home URL Routine Trigger. Each of the four doorbells needs an Alexa routine mapping its pressed event to a real device's Smart Home power action. There is no everyday app handoff: the intended route is authenticated Talin Pages Function -> HTTPS trigger -> Alexa routine -> manufacturer cloud -> appliance. This uses no LAN inbound endpoint or PC bridge, but needs internet. The routine mapping has not yet been physically validated; successful webhook acknowledgements alone did not operate either appliance during the first test.
+
+This is a command-only route. It cannot report appliance online status, current power, humidity, or execution success. The UI therefore does not mark hardware online or fabricate fresh sensor timestamps. Humidity still requires a separate, legitimately authorised Tuya telemetry integration. Existing Siri actions confirm native Smart Life control but are not evidence of a callable web telemetry API.
+
+Countdown delivery is a separate scheduled Free Worker using the same D1 database, not a browser timeout. server/timers.ts claims each due row once before dispatch; interrupted claims become unknown rather than being replayed. Late schedules expire, cancellation races are resolved by an atomic pending-state update, and creation is blocked unless the runner heartbeat/configuration match. No public Worker HTTP control endpoint is exposed. See DEPLOYMENT.md for provisioning and outstanding acceptance checks.

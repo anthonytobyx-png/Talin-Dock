@@ -1,4 +1,6 @@
 import { decode } from "../src/state/storage";
+import { readAlexaActions, triggerAlexa } from "./alexa";
+import { handleTimerApi } from "./timerApi";
 import {
   cookie,
   readSession,
@@ -11,6 +13,7 @@ import {
 export interface Env {
   DB?: D1Database;
   TALIN_PASSWORD_HASH?: string;
+  TALIN_ALEXA_TRIGGERS?: string;
 }
 const MAX_BODY = 32 * 1024;
 function json(
@@ -90,9 +93,14 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
 async function route(request: Request, env: Env): Promise<Response> {
   const path = new URL(request.url).pathname;
   if (
-    !["/api/session", "/api/login", "/api/logout", "/api/preferences"].includes(
-      path,
-    )
+    ![
+      "/api/session",
+      "/api/login",
+      "/api/logout",
+      "/api/preferences",
+      "/api/device-actions",
+      "/api/power-timers",
+    ].includes(path)
   )
     return json({ error: "Not found" }, 404);
   if (request.method !== "GET" && request.method !== "HEAD") {
@@ -163,7 +171,100 @@ async function route(request: Request, env: Env): Promise<Response> {
     return json({ authenticated: true }, 200, { "Set-Cookie": cookie(token) });
   }
   if (!(await authenticated(request, db)))
-    return json({ error: "Sign in to access household preferences" }, 401);
+    return json({ error: "Sign in to access household cloud services" }, 401);
+  if (path === "/api/power-timers") return handleTimerApi(request, env, body);
+  if (path === "/api/device-actions") {
+    const actions = readAlexaActions(env.TALIN_ALEXA_TRIGGERS);
+    if (request.method === "GET")
+      return json({
+        devices: Object.fromEntries(
+          Object.entries(actions).map(([id, value]) => [
+            id,
+            Object.keys(value),
+          ]),
+        ),
+      });
+    if (request.method === "POST") {
+      let data: Record<string, unknown>;
+      try {
+        const input = await body(request);
+        if (!input || typeof input !== "object" || Array.isArray(input))
+          throw new Error();
+        data = input as Record<string, unknown>;
+      } catch {
+        return json({ error: "Invalid command" }, 400);
+      }
+      const { deviceId, action, requestId } = data;
+      if (
+        Object.keys(data).sort().join(",") !== "action,deviceId,requestId" ||
+        typeof deviceId !== "string" ||
+        (action !== "on" && action !== "off") ||
+        typeof requestId !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          requestId,
+        )
+      )
+        return json({ error: "Invalid command" }, 400);
+      const credential = actions[deviceId]?.[action];
+      if (!credential)
+        return json(
+          { error: "This Alexa action is not connected and verified" },
+          503,
+        );
+      const previous = await db
+        .prepare(
+          "SELECT device_id, action, acknowledged FROM alexa_commands WHERE request_id = ?",
+        )
+        .bind(requestId)
+        .first<{ device_id: string; action: string; acknowledged: number }>();
+      if (previous) {
+        if (previous.device_id !== deviceId || previous.action !== action)
+          return json(
+            { error: "Request ID already used for another command" },
+            409,
+          );
+        return json({
+          acknowledged: previous.acknowledged === 1,
+          outcome:
+            previous.acknowledged === 1 ? "trigger-acknowledged" : "unknown",
+          replay: true,
+        });
+      }
+      const now = Date.now();
+      // Reserve once, atomically, before contacting the provider. Never retry an uncertain command.
+      const reserved = await db
+        .prepare(
+          "INSERT INTO alexa_commands (request_id, device_id, action, created_at) SELECT ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM alexa_commands WHERE created_at > ?) < 6 AND (SELECT COUNT(*) FROM alexa_commands WHERE created_at > ?) < 200 ON CONFLICT(request_id) DO NOTHING",
+        )
+        .bind(requestId, deviceId, action, now, now - 60000, now - 86400000)
+        .run();
+      if (!reserved.meta.changes)
+        return json(
+          {
+            error:
+              "Command already submitted or household command limit reached. Do not retry automatically.",
+          },
+          429,
+        );
+      const acknowledged = await triggerAlexa(credential);
+      if (acknowledged)
+        await db
+          .prepare(
+            "UPDATE alexa_commands SET acknowledged = 1 WHERE request_id = ?",
+          )
+          .bind(requestId)
+          .run();
+      await db
+        .prepare("DELETE FROM alexa_commands WHERE created_at < ?")
+        .bind(now - 7 * 86400000)
+        .run();
+      return json({
+        acknowledged,
+        outcome: acknowledged ? "trigger-acknowledged" : "unknown",
+      });
+    }
+    return json({ error: "Method not allowed" }, 405, { Allow: "GET, POST" });
+  }
   if (path === "/api/logout" && request.method === "POST") {
     const token = readSession(request)!;
     await db

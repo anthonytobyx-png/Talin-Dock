@@ -269,3 +269,46 @@ test("unconnected devices expose power and timers without enabling unverified co
     );
   }
 });
+
+test("Alexa controls require verified actions and distinguish trigger acknowledgement from device state", async ({
+  page,
+}) => {
+  const commands: unknown[] = [];
+  await page.route("**/api/power-timers", (route) =>
+    route.fulfill({ json: { ready: false, timers: [] } }),
+  );
+  await page.route("**/api/device-actions", async (route) => {
+    if (route.request().method() === "POST") {
+      commands.push(route.request().postDataJSON());
+      await route.fulfill({
+        json: { acknowledged: true, outcome: "trigger-acknowledged" },
+      });
+    } else
+      await route.fulfill({ json: { devices: { "samsung-tv": ["off"] } } });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  const panel = page
+    .getByRole("region", { name: "Alexa routine power controls" })
+    .first();
+  await expect(
+    panel.getByRole("button", { name: "Alexa: turn off", exact: true }),
+  ).toBeDisabled();
+  await panel
+    .getByRole("button", { name: "Check Alexa connection", exact: true })
+    .click();
+  await expect(
+    panel.getByRole("button", { name: "Alexa: turn on", exact: true }),
+  ).toBeDisabled();
+  await panel
+    .getByRole("button", { name: "Alexa: turn off", exact: true })
+    .click();
+  await expect(panel.getByRole("status")).toContainText(
+    "Device state is not reported",
+  );
+  expect(commands).toHaveLength(1);
+  expect(commands[0]).toMatchObject({ deviceId: "samsung-tv", action: "off" });
+});
