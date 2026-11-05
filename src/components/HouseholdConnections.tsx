@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSamsung } from "../data/SamsungContext";
 import { Panel } from "./primitives";
 import { TuyaConnection } from "./TuyaConnection";
+import { ComputerSettings } from "./ComputerSettings";
 
 export function HouseholdConnections() {
   const hub = useSamsung();
@@ -16,6 +17,7 @@ export function HouseholdConnections() {
         widget is used.
       </p>
       <TuyaConnection />
+      <ComputerSettings />
       <h3>Home device connection</h3>
       <p>
         {hub.ready

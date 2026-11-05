@@ -206,6 +206,146 @@ test("browser signs in and saves preferences through the actual API", async ({
   expect(stored).not.toContain("local-test-passphrase-only");
   expect(stored).not.toContain("__Host-talin-session");
 });
+test("computer pairing, bearer isolation, atomic claims, acknowledgement and revocation", async ({
+  request,
+}) => {
+  expect((await request.get("/api/computers")).status()).toBe(401);
+  expect(
+    (await request.post("/api/computers/agent", { data: {} })).status(),
+  ).toBe(401);
+  await login(request);
+  const id = "11111111-1111-4111-8111-111111111111",
+    commandId = "22222222-2222-4222-8222-222222222222",
+    token = "a".repeat(64);
+  const { createHash } = await import("node:crypto");
+  const paired = await request.post("/api/computers", {
+    headers,
+    data: {
+      operation: "pair",
+      id,
+      name: "Test PC",
+      platform: "Windows",
+      tokenHash: createHash("sha256").update(token).digest("hex"),
+    },
+  });
+  expect(paired.status()).toBe(201);
+  const snapshot = () => ({
+    sampledAt: new Date().toISOString(),
+    cpuPercent: 12,
+    memoryUsedMb: 1000,
+    memoryTotalMb: 32000,
+    gpu: null,
+    audio: {
+      volume: 50,
+      muted: false,
+      output: "Fixture speakers",
+      sessions: [],
+      microphoneMuted: null,
+    },
+    capabilities: ["masterVolume"],
+  });
+  const auth = { Authorization: "Bearer " + token };
+  expect(
+    (
+      await request.post("/api/computers/agent", {
+        headers: { Authorization: "Bearer " + "b".repeat(64) },
+        data: { snapshot: snapshot() },
+      })
+    ).status(),
+  ).toBe(401);
+  const report = await request.post("/api/computers/agent", {
+    headers: auth,
+    data: {
+      snapshot: { ...snapshot(), secret: "must-not-store" },
+      completed: null,
+    },
+  });
+  expect(report.status()).toBe(200);
+  const list = await (await request.get("/api/computers")).json();
+  expect(list.computers[0]).toMatchObject({ id, online: true });
+  expect(JSON.stringify(list)).not.toContain("must-not-store");
+  expect(JSON.stringify(list)).not.toContain("token_hash");
+  const queued = await request.post("/api/computers", {
+    headers,
+    data: {
+      operation: "command",
+      computerId: id,
+      id: commandId,
+      command: { action: "masterVolume", value: 51 },
+    },
+  });
+  expect(queued.status()).toBe(202);
+  const claim = await (
+    await request.post("/api/computers/agent", {
+      headers: auth,
+      data: { snapshot: snapshot() },
+    })
+  ).json();
+  expect(claim.command).toMatchObject({
+    id: commandId,
+    action: "masterVolume",
+    value: 51,
+  });
+  const again = await (
+    await request.post("/api/computers/agent", {
+      headers: auth,
+      data: { snapshot: snapshot() },
+    })
+  ).json();
+  expect(again.command).toBeNull();
+  await request.post("/api/computers/agent", {
+    headers: auth,
+    data: { snapshot: snapshot(), completed: { id: commandId, ok: true } },
+  });
+  const result = await (
+    await request.post("/api/computers", {
+      headers,
+      data: { operation: "result", computerId: id, id: commandId },
+    })
+  ).json();
+  expect(result.status).toBe("acknowledged");
+  expect(
+    (
+      await request.post("/api/computers", {
+        headers,
+        data: {
+          operation: "command",
+          computerId: id,
+          id: commandId,
+          command: { action: "masterVolume", value: 52 },
+        },
+      })
+    ).status(),
+  ).toBe(409);
+  expect(
+    (
+      await request.post("/api/computers", {
+        headers: { ...headers, Origin: "https://evil.example" },
+        data: { operation: "watch", computerId: id },
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await request.post("/api/computers", {
+        headers,
+        data: { operation: "revoke", computerId: id },
+      })
+    ).status(),
+  ).toBe(200);
+  expect(
+    (
+      await request.post("/api/computers/agent", {
+        headers: auth,
+        data: { snapshot: snapshot() },
+      })
+    ).status(),
+  ).toBe(401);
+  expect(
+    (await (await request.get("/api/computers")).json()).computers,
+  ).toHaveLength(0);
+});
+
 test("login attempts are durably rate limited", async ({ request }) => {
   let response = await request.post("/api/login", {
     headers,

@@ -446,3 +446,93 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
   );
   expect(page.context().pages()).toHaveLength(1);
 });
+
+test("Computer mode uses live reports, acknowledges bounded controls and disables them offline", async ({
+  page,
+  context,
+}) => {
+  let volume = 50;
+  const commands: unknown[] = [];
+  const id = "33333333-3333-4333-8333-333333333333";
+  await page.route("**/api/computers", async (route) => {
+    if (route.request().method() === "POST") {
+      const data = route.request().postDataJSON();
+      if (data.operation === "command") {
+        commands.push(data.command);
+        volume = data.command.value;
+        await route.fulfill({
+          status: 202,
+          json: { id: data.id, status: "pending" },
+        });
+      } else
+        await route.fulfill({
+          json: { status: "acknowledged", watching: true },
+        });
+    } else
+      await route.fulfill({
+        json: {
+          computers: [
+            {
+              id,
+              name: "Fixture Windows PC",
+              platform: "Windows",
+              online: true,
+              lastSeen: Date.now(),
+              snapshot: {
+                sampledAt: new Date().toISOString(),
+                cpuPercent: 23,
+                memoryUsedMb: 8192,
+                memoryTotalMb: 32768,
+                gpu: {
+                  name: "Fixture GPU",
+                  loadPercent: 12,
+                  temperatureC: 40,
+                  memoryUsedMb: 1024,
+                  memoryTotalMb: 8192,
+                },
+                audio: {
+                  volume,
+                  muted: false,
+                  output: "Fixture speakers",
+                  microphoneMuted: null,
+                  sessions: [],
+                },
+                capabilities: ["masterVolume", "masterMute"],
+              },
+            },
+          ],
+        },
+      });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Computer", exact: true })
+    .click();
+  await expect(page.getByText("CPU: 23%", { exact: false })).toBeVisible();
+  const slider = page.getByRole("slider", {
+    name: "Master volume",
+    exact: true,
+  });
+  await slider.focus();
+  await slider.press("ArrowRight");
+  await page
+    .getByRole("button", { name: "Apply master volume · 51%", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Companion acknowledged",
+  );
+  expect(commands).toEqual([{ action: "masterVolume", value: 51 }]);
+  await expect(
+    page.getByRole("button", { name: "Play / pause", exact: true }),
+  ).toBeDisabled();
+  await context.setOffline(true);
+  await expect(
+    page.getByRole("button", { name: "Mute speakers", exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByRole("alert")).toContainText("stale");
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
+    "Fixture speakers",
+  );
+  await context.setOffline(false);
+});

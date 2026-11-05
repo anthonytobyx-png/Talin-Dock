@@ -1,5 +1,18 @@
 # Talin Dock
 
+## Computer continuation — 5 November 2026
+
+This section supersedes older statements that Computer mode is entirely unimplemented.
+
+- A free Windows companion and authenticated cloud relay are implemented. They report measured CPU/memory, supported NVIDIA load/temperature/memory, the default multimedia output's volume/mute and application audio sessions, and default communications-microphone mute. No audio, screenshots, window titles, executable paths or playback titles are collected. Unsupported telemetry stays unavailable.
+- Computer controls use the existing household sign-in: master/application volume and mute, communications-microphone mute, Windows media keys, Show Desktop and Task Manager. There is no arbitrary shell, remote file execution, new LAN listener, port forwarding or new iPad certificate for this route. Lock, sleep, screenshot capture, output switching, USB and macOS are not implemented.
+- Native tests verified real PC reports and a queued cloud-runtime-to-Windows master-volume change/readback, per-session volume and master-mute readback. The original volume/mute were restored. Media/desktop shortcuts were not triggered during the owner's active session; successful key submission is not playback confirmation.
+- Companion credentials are random 256-bit values encrypted by Windows DPAPI for the current user, outside browser preferences and the repository. D1 stores only the token hash, latest allowlisted report and bounded command history. Authenticated Settings supports pairing from a public-verifier request file and revocation. The Windows installation is prepared; production pairing/startup require the final access grant before this PC is reported connected.
+- The additive 0005_computers.sql schema was applied to the existing free production D1 database without overwriting household data. Reports poll at 15 seconds while idle and about five seconds during visible Computer use; disconnect/stale controls disable after 30 seconds. This initial route requires internet and uses free quotas, not a claimed USB/LAN connection. Home never depends on the companion.
+- Commands are allowlisted, scoped per computer, validated against its reported capabilities, rate-limited and claimed once. Uncertain commands are not retried. Requests expire after 20 seconds; old claims become unknown. Revocation removes the private snapshot and blocks new polls/claims. Computer reports and credentials are never service-worker cached or written to browser localStorage.
+- .NET 10 LTS is isolated for building; the runtime package is self-contained, user-local and needs no administrator service. NAudio.Wasapi 2.4.0 is used under its free license. npm and NuGet vulnerability audits found zero vulnerabilities. Windows CI builds the companion with locked dependencies; app checks cover actual local Pages/D1 authentication, claims and revocation.
+- iPad installation remains deferred until the end. No paid plan, trial, subscription or automatic paid upgrade is enabled. Other household computers and a physical iPad/PC-off acceptance test remain unverified.
+
 ## Current setup policy — 5 November 2026
 
 This section supersedes earlier continuation snapshots below.

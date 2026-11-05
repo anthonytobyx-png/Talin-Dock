@@ -4,6 +4,7 @@ import { handleTimerApi } from "./timerApi";
 import { verifyTimerDispatch } from "./timerDispatch";
 import { runTimers } from "./timers";
 import { handleTuyaApi } from "./tuya/api";
+import { handleComputerAgent, handleComputers } from "./computers";
 import {
   cookie,
   readSession,
@@ -97,6 +98,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
 }
 async function route(request: Request, env: Env): Promise<Response> {
   const path = new URL(request.url).pathname;
+  if (path === "/api/computers/agent") {
+    if (!env.DB) return json({ error: "Unavailable" }, 503);
+    return handleComputerAgent(request, env.DB, body);
+  }
   if (path === "/api/timer-runner") {
     if (
       request.method !== "POST" ||
@@ -119,6 +124,7 @@ async function route(request: Request, env: Env): Promise<Response> {
       "/api/tuya/connect",
       "/api/tuya/poll",
       "/api/tuya/action",
+      "/api/computers",
     ].includes(path)
   )
     return json({ error: "Not found" }, 404);
@@ -191,6 +197,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   if (!(await authenticated(request, db)))
     return json({ error: "Sign in to access household cloud services" }, 401);
+  if (path === "/api/computers") return handleComputers(request, db, body);
   if (path.startsWith("/api/tuya")) return handleTuyaApi(request, env, body);
   if (path === "/api/power-timers") return handleTimerApi(request, env, body);
   if (path === "/api/device-actions") {

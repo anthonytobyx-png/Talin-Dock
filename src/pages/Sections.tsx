@@ -1,8 +1,6 @@
-import { useState } from "react";
 import {
   Monitor,
   Mic,
-  Laptop,
   ArrowUp,
   ArrowDown,
   ArrowLeft,
@@ -253,42 +251,7 @@ export function Media() {
     </>
   );
 }
-export function Computer() {
-  const [platform, setPlatform] = useState("Windows");
-  return (
-    <>
-      <Intro
-        eyebrow="YOUR DESK, CONNECTED"
-        title="Computer"
-        description="A future companion for your computer. Home works independently."
-      />
-      <div className="segments platform">
-        {["Windows", "macOS"].map((p) => (
-          <button
-            key={p}
-            aria-pressed={p === platform}
-            onClick={() => setPlatform(p)}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
-      <Panel title={`${platform} · Not paired`} className="empty-panel">
-        <Laptop size={56} />
-        <h3>A companion is needed</h3>
-        <p>
-          Metrics, audio and system controls will need an authenticated
-          companion on each computer. No companion has been built or discovered.
-        </p>
-        <p>
-          Wi-Fi transport is planned. USB feasibility and macOS per-app audio
-          remain unverified.
-        </p>
-        <Go to="Settings">Household settings</Go>
-      </Panel>
-    </>
-  );
-}
+export { ComputerPanel as Computer } from "../components/ComputerPanel";
 export function Deferred({ display = false }: { display?: boolean }) {
   return (
     <>
