@@ -1,5 +1,12 @@
 # Home setup checklist
 
+## Verified PC and second Windows account — 5 November 2026
+
+- Anthony's companion is paired in production and starts at Windows sign-in under his own account. The deployed Computer page received real CPU/memory/NVIDIA/audio reports. A production UI volume request was acknowledged with the starting 82% level retained. Home data and the existing Smart Life connection were preserved. The initial computer implementation/deployment and Windows CI passed all 65 app checks plus native audio/queue tests.
+- The owner requested the same setup for the second account, Barbara. It has a separate cloud identity; no Anthony credential is copied. Barbara's profile is not loaded. Current non-elevated Windows permissions prevent installing her startup shortcut. A reviewed administrator installer and windowless shared runtime are prepared; administrator approval remains needed to write the protected startup folder. Do not claim Barbara is connected or hardware-tested yet.
+- The second-account bootstrap is Windows-machine encrypted, stored in a protected directory and bound in the companion to Barbara's exact Windows SID. The administrator installer restricts its runtime to administrator writes and its bootstrap to that account/admin/SYSTEM. At her next normal sign-in, the companion seals its own credential with CurrentUser DPAPI and consumes the bootstrap. Tests rejected the wrong SID and a broadly readable output directory, and verified successful user-bound sealing/consumption with a separate local fixture. No account password, registry hive, private files or browser credentials were extracted.
+- The installer changes only the Talin ProgramData runtime/enrollment and the target user's Talin startup shortcut. It creates no system service, firewall rule, router configuration, paid service or certificate trust change. Existing different startup/enrollment files are preserved. Physical iPad setup remains deferred until the end.
+
 ## Computer continuation — 5 November 2026
 
 This section supersedes older statements that Computer mode is entirely unimplemented.

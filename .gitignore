@@ -14,3 +14,4 @@ wrangler.production.jsonc
 integrations/**/src/local_config.lua
 companion/**/bin/
 companion/**/obj/
+*.dpapi

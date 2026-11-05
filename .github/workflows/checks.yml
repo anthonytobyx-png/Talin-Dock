@@ -33,3 +33,4 @@ jobs:
           dotnet-version: "10.0.x"
       - run: dotnet restore companion/windows/Talin.Companion.csproj --locked-mode
       - run: dotnet build companion/windows/Talin.Companion.csproj --no-restore --configuration Release
+      - run: ./companion/windows/Test-Bootstrap.ps1 -AssemblyPath companion/windows/bin/Release/net10.0-windows/win-x64/Talin.Companion.dll

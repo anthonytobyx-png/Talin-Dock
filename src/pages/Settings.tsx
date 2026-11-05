@@ -171,10 +171,11 @@ export function Settings() {
           <Panel title="About this build">
             <p>Web app · cloud storage ready</p>
             <p>
-              Connected devices use the saved household integrations. Calendars
-              and computer connections remain unconfigured. No audio is
-              recorded. Local preferences may be cleared by Safari. Use backup
-              or the authenticated cloud copy to keep another copy.
+              Connected devices use the saved household integrations. Calendar
+              connections remain unconfigured. Computer availability is shown in
+              Computer mode. No audio is recorded. Local preferences may be
+              cleared by Safari. Use backup or the authenticated cloud copy to
+              keep another copy.
             </p>
           </Panel>
         </div>

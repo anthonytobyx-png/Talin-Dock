@@ -211,6 +211,10 @@ export function ComputerPanel() {
         <span className="eyebrow">YOUR DESK, CONNECTED</span>
         <h1>Computer</h1>
         <p>
+          Each Windows account has its own companion. Performance describes the
+          PC; audio and desktop controls use the selected account’s session.
+        </p>
+        <p>
           Optional Windows companions. Home keeps working when every computer is
           off.
         </p>

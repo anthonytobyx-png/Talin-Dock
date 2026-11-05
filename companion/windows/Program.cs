@@ -13,6 +13,7 @@ using NAudio.CoreAudioApi;
 
 internal record Completion(string Id, bool Ok);
 internal record Configuration(string Id, string Name, string Origin, string Token, string? LastCommand = null, Completion? Completed = null);
+internal record Bootstrap(string WindowsSid, Configuration Configuration);
 internal static class Program
 {
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
@@ -32,6 +33,32 @@ internal static class Program
         if (!OperatingSystem.IsWindows()) return 1;
         try
         {
+            if (args.Contains("--prepare-bootstrap"))
+            {
+                string sid = new SecurityIdentifier(Argument(args, "--target-sid", "")).Value;
+                string destination = Path.GetFullPath(Argument(args, "--bootstrap-output", ""));
+                if (File.Exists(destination)) throw new IOException("Bootstrap already exists");
+                var ownerSid = WindowsIdentity.GetCurrent().User!;
+                var trustedSids = new[] { ownerSid.Value, "S-1-5-18", "S-1-5-32-544" };
+                var parentAcl = new DirectoryInfo(Path.GetDirectoryName(destination)!).GetAccessControl();
+                foreach (FileSystemAccessRule rule in parentAcl.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                    if (rule.AccessControlType == AccessControlType.Allow && !trustedSids.Contains(rule.IdentityReference.Value)) throw new InvalidOperationException("Bootstrap output directory must be private");
+                var configuration = new Configuration(Guid.NewGuid().ToString(), Argument(args, "--name", "Windows desktop"), "https://talin-dock.pages.dev", Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant());
+                byte[] plain = JsonSerializer.SerializeToUtf8Bytes(new Bootstrap(sid, configuration), Json);
+                try
+                {
+                    File.WriteAllBytes(destination, ProtectedData.Protect(plain, null, DataProtectionScope.LocalMachine));
+                    var fileAcl = new FileSecurity();
+                    fileAcl.SetAccessRuleProtection(true, false);
+                    fileAcl.SetOwner(ownerSid);
+                    foreach (string trustedSid in trustedSids) fileAcl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(trustedSid), FileSystemRights.FullControl, AccessControlType.Allow));
+                    new FileInfo(destination).SetAccessControl(fileAcl);
+                }
+                finally { CryptographicOperations.ZeroMemory(plain); }
+                File.WriteAllText(destination + ".request.json", JsonSerializer.Serialize(new { id = configuration.Id, name = configuration.Name, platform = "Windows", tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(configuration.Token))).ToLowerInvariant() }, Json));
+                Console.WriteLine("Separate Windows-user bootstrap prepared; no credentials printed.");
+                return 0;
+            }
             if (args.Contains("--probe")) { _ = await Machine.Sample(); await Task.Delay(300); Console.WriteLine(JsonSerializer.Serialize(await Machine.Sample(), Json)); return 0; }
             if (args.Contains("--audio-self-test")) { Console.WriteLine(JsonSerializer.Serialize(Machine.AudioSelfTest(), Json)); return 0; }
             string directory = Argument(args, "--state-dir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TalinDock"));
@@ -41,6 +68,18 @@ internal static class Program
             security.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().User!, FileSystemRights.FullControl, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
             new DirectoryInfo(directory).SetAccessControl(security);
             StateFile = Path.Combine(directory, "companion.dpapi");
+            if (!File.Exists(StateFile) && args.Contains("--bootstrap"))
+            {
+                string bootstrapFile = Path.GetFullPath(Argument(args, "--bootstrap", ""));
+                if (new FileInfo(bootstrapFile).Length > 16384) throw new InvalidDataException();
+                byte[] plain = ProtectedData.Unprotect(File.ReadAllBytes(bootstrapFile), null, DataProtectionScope.LocalMachine);
+                Bootstrap? bootstrap;
+                try { bootstrap = JsonSerializer.Deserialize<Bootstrap>(plain, Json); }
+                finally { CryptographicOperations.ZeroMemory(plain); }
+                if (bootstrap?.WindowsSid != WindowsIdentity.GetCurrent().User!.Value || bootstrap.Configuration.Origin != "https://talin-dock.pages.dev" || bootstrap.Configuration.Token.Length != 64) throw new InvalidDataException();
+                Save(bootstrap.Configuration); // Re-encrypt for this user; never copy another user's DPAPI state.
+                try { File.Delete(bootstrapFile); } catch { /* Installer ACLs restrict the leftover to this account and administrators. */ }
+            }
             if (args.Contains("--prepare"))
             {
                 if (!File.Exists(StateFile))
