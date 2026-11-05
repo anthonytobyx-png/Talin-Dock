@@ -17,3 +17,13 @@ Primary references: [SmartThings SSL configuration](https://developer.smartthing
 The driver requires both lan and discovery permissions. Changing permissions requires a new packageKey, so the corrected diagnostic uses talin-hub-https-probe-v2. A managed LAN diagnostic is the runtime test; a cloud-created VIRTUAL record is insufficient evidence that a Lua driver runs. The earlier empty VIRTUAL setup record is labelled inactive.
 
 An optional read-only custom capability reports literal startup/failure stages through the authenticated cloud status API. Its creation definition is capability.json; create it with the official CLI and replace the generated capability ID in src/init.lua and profiles/probe.yml for a different household. The current generated ID is public capability metadata, not a credential. Device profile updates are requested by the driver for its own diagnostic only. No debugger trust exception, account token, appliance action or repeated polling is used.
+
+## Actual TV-hub result (5 November 2026)
+
+The managed LAN probe runs. Native hostname resolution stalled; bounded DNS through the verified household router (192.168.1.1) succeeded. The module checks transaction/question/response fields, compression bounds, CNAME chains and TTLs, and accepts public IPv4 answers only. DNS remains untrusted: TLS requires CA and hostname verification. Adjust the explicit router address for another household.
+
+Public TCP returned Network is unreachable. This matches Samsung's intentional LAN private-address restriction. Do not evade it; outbound Cloudflare polling on this hub is not supported. See [Samsung engineer explanation](https://community.smartthings.com/t/edge-drivers-private-addresses-lan/257846/11) and [permission documentation](https://developer.smartthings.com/docs/devices/hub-connected/driver-components-and-structure).
+
+A separate private local TLS experiment did not prove a listener or client authentication and is excluded from this public package. No local_config, private keys or inbound endpoint is included. Refresh is manual; failure leaves contact open. This tile is neither TV power nor a physical door sensor.
+
+Run Fengari with test.lua and test-dns.lua: 8 TLS/capability failure paths and 19 DNS checks. Mocks do not establish hardware TLS support. Native TV Off/On and provider reads were separately verified with the owner's official CLI session. CLI credentials are not repurposed as a hosted application integration.

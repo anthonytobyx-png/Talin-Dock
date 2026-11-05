@@ -1,7 +1,7 @@
 -- Security checks run in Lua with mocked hub APIs; no network or credentials.
 local passed = 0
 package.loaded["roots"] = "public-root-fixture"
-for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-certificate-api", "missing-hostname-api", "wrong-hostname", "http-error"}) do
+for _, scenario in ipairs({"success", "dns-failure", "tcp-failure", "chain-failure", "missing-certificate-api", "missing-hostname-api", "wrong-hostname", "http-error"}) do
   local emitted, sent, finalStage
   local conn = {}
   function conn:settimeout() end
@@ -17,7 +17,8 @@ for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-c
       return { checkhost = function(_, host) assert(host == "talin-dock.pages.dev") return scenario ~= "wrong-hostname" end }
     end
   end
-  package.loaded["cosock"] = { socket = { tcp = function() return conn end }, ssl = {
+  package.loaded["dns"] = { resolve = function() if scenario == "dns-failure" then error("fixture DNS unavailable") end return "203.0.113.1" end }
+  package.loaded["cosock"] = { socket = { dns = { toip = function() if scenario == "dns-failure" then return nil end return "203.0.113.1" end }, tcp = function() return conn end }, ssl = {
     wrap = function(sock, config)
       assert(config.verify == "peer" and config.cafile == "public-root-fixture")
       assert(config.options[6] == "no_tlsv1_1" or config.options[5] == "no_tlsv1_1")

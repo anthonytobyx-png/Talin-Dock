@@ -1,5 +1,19 @@
 # Talin Dock
 
+## Verified continuation — 5 November 2026
+
+This section supersedes older phase/setup statements below.
+
+- Production: https://talin-dock.pages.dev/. Pages, D1 and the independent minute timer Worker remain free. Household preferences and the encrypted Smart Life connection are preserved.
+- Devology DEV_19: direct Smart Life humidity, online/power reporting, power commands, native 2-hour countdown/cancellation and durable cloud timers work inside Talin. Provider reads confirmed power changes; the dispatcher acknowledged a due command with the browser closed. Physical observation and a real PC-off/iPad test remain outstanding. Sensor sample timestamps are unavailable; retrieval time is not measurement time. No humidity history is promised.
+- Samsung: its existing hub runs the read-only LAN diagnostic. Official CLI Off/On commands were acknowledged and provider reads confirmed each state; the initial On state was restored. This is diagnostic evidence, not Talin TV control. Hub operation with the screen off remains unverified.
+- Bounded router DNS resolved Talin's public address; public TCP then failed with “Network is unreachable”. Samsung intentionally limits LAN Edge drivers to private addresses. No egress bypass, PC bridge, port forwarding or paid API is used. TV controls remain disabled in Talin.
+- A private local HTTPS experiment did not establish a working authenticated connection. The temporary listener was removed and replaced by the public outbound-only diagnostic; a fresh authenticated hub status confirmed the outbound TCP failure. No certificate was installed/trusted; debugger certificate verification remains unchanged. A further private server-key upload requires specific consent. No production TV route is established.
+- Alexa is no longer being pursued, per owner instruction. Existing credentials/doorbells were left unchanged; trigger acknowledgements never proved appliance execution. Calendars remain deferred; Google/iCloud/Outlook options remain.
+- Desktop responsive/offline checks passed previously. Safari 15/iPad Air 2 touch, updates, cold offline launch and PC-off checks still require the physical iPad. Preserve household preferences when testing.
+
+- Validation: typecheck, lint, build, 40 unit/backend, 12 browser, 5 local Pages/D1 and 27 public Lua diagnostic checks passed. The initial sandboxed Vitest run failed on filesystem realpath permissions; the authorised rerun outside that sandbox passed.
+
 A touch-first household dashboard for iPad Air 2, built with React, TypeScript and Vite. Home works independently of household computers. The app now includes live-provider weather, offline shell caching, editable layouts, local backups and authenticated Cloudflare D1 sync code.
 
 ## Run locally
@@ -60,7 +74,7 @@ The prior cloud task fetched Cloudflare's official guide, installed skills and r
 
 Once deployed over HTTPS, open in Safari and choose Share → Add to Home Screen. Offline launch is available after a successful online cache installation; Safari may still evict site storage. The clock, layouts and preferences work offline; weather falls back to dated cached data, and cloud/device connections need a network. There is no promise of offline LAN control or background collection.
 
-Samsung TV and Tuya dehumidifier are unconfigured records with no confirmed capabilities. All real controls/scenes are disabled; no hardware is contacted. Google, iCloud and Outlook are represented as calendar provider options but no account is connected. The web app cannot access the native iPad calendar store. Voice, companions, USB, display streaming and automatic kiosk relaunch remain outside this hardware-independent phase.
+Smart Life has a confirmed direct cloud route for the DEV_19 dehumidifier, described above. Samsung controls remain disabled until a secure PC-independent Talin route is proven. Google, iCloud and Outlook are represented as calendar provider options but no account is connected. The web app cannot access the native iPad calendar store. Voice, companions, USB, display streaming and automatic kiosk relaunch remain outside this hardware-independent phase.
 
 Original artboards/screenshots were not supplied; visual comparison and physical Safari/iPad performance tests are still required. The original five documents remain byte-for-byte in [docs/specifications](docs/specifications/PRODUCT_SPECIFICATION.md). Read [architecture](ARCHITECTURE.md), [status](IMPLEMENTATION_STATUS.md) and the [home checklist](HOME_SETUP_CHECKLIST.md).
 

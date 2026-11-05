@@ -22,13 +22,15 @@ local function probe(driver, device)
       stage = value
       report(value)
     end
-    local ok = pcall(function()
+    local ok, failure = pcall(function()
       progress("roots")
       local ROOTS = require "roots"
+      progress("dns")
+      local ip = assert(require("dns").resolve(HOST, socket, nil, {"192.168.1.1", "1.1.1.1"}))
       progress("tcp")
       conn = assert(socket.tcp())
       conn:settimeout(8)
-      assert(conn:connect(HOST, 443))
+      assert(conn:connect(ip, 443))
       progress("tls-wrap")
       conn = assert(ssl.wrap(conn, {
         mode = "client", protocol = "any", verify = "peer",
@@ -53,7 +55,7 @@ local function probe(driver, device)
       assert(status:match("^HTTP/1%.[01] 200 "))
     end)
     if conn then pcall(function() conn:close() end) end
-    report(ok and "verified" or (stage .. ":failed"))
+    report(ok and "verified" or (stage .. ": " .. tostring(failure):gsub("^.-:%d+: ", ""):gsub("[^%w%p ]", "?"):sub(1, 30)))
     device:emit_event(ok and capabilities.contactSensor.contact.closed() or capabilities.contactSensor.contact.open())
     print(ok and "Talin probe: verified TLS and public API available" or ("Talin probe: unavailable at " .. stage .. "; no device control enabled"))
   end, "Talin read-only HTTPS probe")
