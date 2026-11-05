@@ -312,3 +312,105 @@ test("Alexa controls require verified actions and distinguish trigger acknowledg
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ deviceId: "samsung-tv", action: "off" });
 });
+
+test("Smart Life connects inside Talin, labels unknown sample age, and keeps credentials out of local storage", async ({
+  page,
+}) => {
+  let connected = false,
+    power = false;
+  const state = () => ({
+    online: true,
+    power,
+    humidity: 63,
+    observedAt: new Date().toISOString(),
+    measurementTime: null,
+    canPower: true,
+    countdownOptions: ["cancel", "2h"],
+    countdownSetting: "cancel",
+    countdownLeft: 0,
+  });
+  const commands: unknown[] = [];
+  await page.route("**/api/tuya**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/connect")) {
+      await route.fulfill({
+        json: {
+          connectionId: "a".repeat(64),
+          qrData: "tuyaSmart--qrLogin?token=fixture-only",
+        },
+      });
+      return;
+    }
+    if (path.endsWith("/poll")) {
+      connected = true;
+      await route.fulfill({ json: { connected: true, state: state() } });
+      return;
+    }
+    if (path.endsWith("/action")) {
+      const data = route.request().postDataJSON();
+      commands.push(data);
+      power = data.action === "on";
+      await route.fulfill({ json: { acknowledged: true } });
+      return;
+    }
+    await route.fulfill({
+      json: {
+        available: true,
+        connected,
+        state: connected ? state() : undefined,
+        timerReady: false,
+      },
+    });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  const section = page.getByRole("region", {
+    name: "Smart Life connection",
+    exact: true,
+  });
+  await section
+    .getByRole("button", { name: "Connect Smart Life", exact: true })
+    .click();
+  await section
+    .getByLabel("Smart Life User Code", { exact: true })
+    .fill("private-fixture-code");
+  await section
+    .getByRole("button", {
+      name: "Generate Smart Life consent QR",
+      exact: true,
+    })
+    .click();
+  await expect(section.getByRole("img")).toBeVisible();
+  await section
+    .getByRole("button", {
+      name: "I approved in Smart Life — check connection",
+      exact: true,
+    })
+    .click();
+  await expect(section).toContainText("Power reported by Smart Life: Off");
+  await expect(
+    page.getByText("Latest reported humidity · measurement time unavailable.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  const controls = page.getByRole("region", {
+    name: "Dehumidifier power and timers",
+  });
+  await controls.getByRole("button", { name: "Turn on", exact: true }).click();
+  await expect(section).toContainText("Power reported by Smart Life: On");
+  expect(commands).toHaveLength(1);
+  expect(commands[0]).toMatchObject({ action: "on" });
+  await expect(
+    controls.getByRole("button", { name: "Add timer", exact: true }),
+  ).toBeDisabled();
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
+    "private-fixture-code",
+  );
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
+    "fixture-only",
+  );
+  expect(page.context().pages()).toHaveLength(1);
+});

@@ -107,3 +107,11 @@ Before enabling: create the Alexa routines in the phone app, test Play and exter
 Official references: https://www.virtualsmarthome.xyz/url_routine_trigger/ ; https://virtualsmarthome.freshdesk.com/support/solutions/articles/202000046256-getting-started-with-url-routine-trigger ; https://developers.cloudflare.com/workers/platform/limits/ ; https://developers.cloudflare.com/workers/configuration/cron-triggers/
 
 The desktop continuation applied both additive migrations through the existing D1 console and verified all three new table names in sqlite_master. Only command/timer schema was added; existing preferences were not written.
+
+## Direct Tuya secure configuration
+
+Migration 0004_tuya.sql adds encrypted connection/pairing storage and idempotent command reservations. It was applied through the existing D1 console without changing preference rows. The encrypted production secret TALIN_TUYA_KEY is a randomly generated 32-byte AES key encoded as 64 hex characters. Keep the key stable while encrypted rows exist; never rotate it without reconnecting or explicitly migrating those rows. No real key or account token is in the repository.
+
+The permanent authorisation takes place inside authenticated Talin, not in the temporary PC diagnostic. Pending QR state is encrypted, belongs to the current household session, and expires after four minutes. Connection attempts are bounded. Only the uniquely discovered cs/DEV_19 device is selected. Server token refresh is leased and encrypted; device requests use a fixed endpoint allowlist. Neither setup nor runtime creates a developer cloud project, API subscription or trial. The public Home Assistant compatibility registration may change or require reauthorisation; do not claim a vendor-supported permanent Talin API.
+
+The separate timer Worker needs the identical encrypted TALIN_TUYA_KEY along with the existing DB binding and once-per-minute Cron. Its heartbeat hash now includes direct Tuya configuration. No workers.dev endpoint or request observability is needed. Production provisioning and device tests remain prerequisites before cloud timers are enabled. The prototype TV hub route is separate and has not been deployed.

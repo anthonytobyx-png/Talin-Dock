@@ -1,6 +1,15 @@
 import { readAlexaActions, triggerAlexa } from "./alexa";
 import type { Env } from "./api";
 import { sha256 } from "./auth";
+import { executeTuya } from "./tuya/service";
+export function timerConfiguration(env: Env) {
+  return env.TALIN_TUYA_KEY
+    ? JSON.stringify({
+        alexa: readAlexaActions(env.TALIN_ALEXA_TRIGGERS),
+        tuya: env.TALIN_TUYA_KEY,
+      })
+    : env.TALIN_ALEXA_TRIGGERS || "";
+}
 
 export interface TimerRow {
   id: string;
@@ -38,13 +47,18 @@ export async function runTimers(env: Env, now = Date.now()) {
   const db = env.DB;
   if (!db) return;
   const actions = readAlexaActions(env.TALIN_ALEXA_TRIGGERS);
-  if (!Object.keys(actions).length) return;
+  const directTuya =
+    !!env.TALIN_TUYA_KEY &&
+    !!(await db
+      .prepare("SELECT id FROM tuya_connections WHERE id = 1")
+      .first());
+  if (!Object.keys(actions).length && !directTuya) return;
   await db.batch([
     db
       .prepare(
         "INSERT INTO timer_runner(id,last_seen,config_hash) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET last_seen = excluded.last_seen, config_hash = excluded.config_hash",
       )
-      .bind(now, await sha256(env.TALIN_ALEXA_TRIGGERS || "")),
+      .bind(now, await sha256(timerConfiguration(env))),
     db
       .prepare(
         "UPDATE power_timers SET status = 'expired' WHERE status = 'pending' AND due_at < ?",
@@ -77,7 +91,18 @@ export async function runTimers(env: Env, now = Date.now()) {
       .first();
     if (!claim) continue;
     // Once claimed, a crash/timeout never causes automatic re-delivery.
-    const acknowledged = credential ? await triggerAlexa(credential) : false;
+    let acknowledged = false;
+    try {
+      acknowledged =
+        row.device_id === "tuya-dehumidifier" && directTuya
+          ? (await executeTuya(db, env.TALIN_TUYA_KEY!, row.action, row.id))
+              .acknowledged
+          : credential
+            ? await triggerAlexa(credential)
+            : false;
+    } catch {
+      /* Keep an uncertain timer claimed; never auto-retry it. */
+    }
     await db
       .prepare(
         "UPDATE power_timers SET status = ? WHERE id = ? AND status = 'claimed'",

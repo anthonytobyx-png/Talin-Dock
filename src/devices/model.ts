@@ -23,6 +23,9 @@ export interface Device {
   updatedAt: string | null;
   error?: string;
   readings: Partial<Record<"humidity" | "temperature", number>>;
+  dataSource?: string;
+  measurementTimeUnknown?: boolean;
+  powerState?: boolean | null;
   powerTimer?: {
     executor: "device" | "service";
     minSeconds: number;

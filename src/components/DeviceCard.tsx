@@ -8,7 +8,12 @@ export function DeviceCard({
   device: Device;
   large?: boolean;
 }) {
-  const humidity = sensorValue(device, "humidity");
+  const humidity =
+    sensorValue(device, "humidity") ||
+    (device.measurementTimeUnknown &&
+    typeof device.readings.humidity === "number"
+      ? { value: device.readings.humidity, stale: true }
+      : null);
   return (
     <Panel
       title={device.name}
@@ -46,6 +51,15 @@ export function DeviceCard({
         )}
       </div>
       {humidity?.stale && <p>Stale reading · updated {device.updatedAt}</p>}
+      {device.measurementTimeUnknown && humidity && (
+        <p>
+          Latest reported humidity · measurement time unavailable. Retrieved{" "}
+          {device.updatedAt
+            ? new Date(device.updatedAt).toLocaleString()
+            : "Unknown"}{" "}
+          from {device.dataSource}.
+        </p>
+      )}
       {large && (
         <p>
           Humidity, power and timers require a verified connection and support

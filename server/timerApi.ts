@@ -1,6 +1,12 @@
 import { readAlexaActions } from "./alexa";
 import type { Env } from "./api";
-import { publicTimer, runnerReady, type TimerRow } from "./timers";
+import {
+  publicTimer,
+  runnerReady,
+  timerConfiguration,
+  type TimerRow,
+} from "./timers";
+import { getSnapshot } from "./tuya/service";
 const response = (value: unknown, status = 200) =>
   Response.json(value, {
     status,
@@ -20,7 +26,7 @@ export async function handleTimerApi(
       .prepare("SELECT * FROM power_timers ORDER BY created_at DESC LIMIT 32")
       .all<TimerRow>();
     return response({
-      ready: await runnerReady(db, env.TALIN_ALEXA_TRIGGERS),
+      ready: await runnerReady(db, timerConfiguration(env)),
       timers: rows.results.map(publicTimer),
     });
   }
@@ -77,14 +83,18 @@ export async function handleTimerApi(
       { error: "Choose an action and a countdown from 2 minutes to 24 hours" },
       400,
     );
-  if (
-    !readAlexaActions(env.TALIN_ALEXA_TRIGGERS)[deviceId]?.[action] ||
-    !(await runnerReady(db, env.TALIN_ALEXA_TRIGGERS))
-  )
+  let supported = !!readAlexaActions(env.TALIN_ALEXA_TRIGGERS)[deviceId]?.[
+    action
+  ];
+  if (deviceId === "tuya-dehumidifier" && env.TALIN_TUYA_KEY) {
+    const state = await getSnapshot(db, env.TALIN_TUYA_KEY);
+    supported = state.online && state.canPower;
+  }
+  if (!supported || !(await runnerReady(db, timerConfiguration(env))))
     return response(
       {
         error:
-          "Verified Alexa action and a healthy cloud timer runner are required",
+          "A verified device action and a healthy cloud timer runner are required",
       },
       503,
     );

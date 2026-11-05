@@ -1,6 +1,7 @@
 import { decode } from "../src/state/storage";
 import { readAlexaActions, triggerAlexa } from "./alexa";
 import { handleTimerApi } from "./timerApi";
+import { handleTuyaApi } from "./tuya/api";
 import {
   cookie,
   readSession,
@@ -14,6 +15,7 @@ export interface Env {
   DB?: D1Database;
   TALIN_PASSWORD_HASH?: string;
   TALIN_ALEXA_TRIGGERS?: string;
+  TALIN_TUYA_KEY?: string;
 }
 const MAX_BODY = 32 * 1024;
 function json(
@@ -100,6 +102,10 @@ async function route(request: Request, env: Env): Promise<Response> {
       "/api/preferences",
       "/api/device-actions",
       "/api/power-timers",
+      "/api/tuya",
+      "/api/tuya/connect",
+      "/api/tuya/poll",
+      "/api/tuya/action",
     ].includes(path)
   )
     return json({ error: "Not found" }, 404);
@@ -172,6 +178,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   if (!(await authenticated(request, db)))
     return json({ error: "Sign in to access household cloud services" }, 401);
+  if (path.startsWith("/api/tuya")) return handleTuyaApi(request, env, body);
   if (path === "/api/power-timers") return handleTimerApi(request, env, body);
   if (path === "/api/device-actions") {
     const actions = readAlexaActions(env.TALIN_ALEXA_TRIGGERS);

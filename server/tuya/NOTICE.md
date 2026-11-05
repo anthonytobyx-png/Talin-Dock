@@ -1,0 +1,3 @@
+The request signing, encryption, token refresh and device API paths in protocol.ts and service.ts are adapted from tuya/tuya-device-sharing-sdk 0.2.15 (https://github.com/tuya/tuya-device-sharing-sdk), Copyright (c) 2023 Tuya, under the MIT license reproduced in LICENSE.
+
+The compatibility login uses the publicly distributed Home Assistant client registration. Talin is an independent client, not an official Home Assistant installation or a Tuya-certified application. The connection screen discloses this before consent. The endpoint may change or require reauthorisation; no commercial API plan, developer project or trial is provisioned.

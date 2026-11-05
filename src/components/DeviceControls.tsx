@@ -149,9 +149,15 @@ export function DeviceControls({
             Turn {timer.power ? "on" : "off"} ·{" "}
             {new Date(timer.dueAt).toLocaleString()} ·{" "}
             {timer.executor === "device" ? "Device timer" : "Online service"}
+            {timer.status &&
+              ` · ${timer.status === "acknowledged" ? "Command acknowledged; check the appliance" : timer.status}`}
           </span>
           <button
-            disabled={busy || !timerReady}
+            disabled={
+              busy ||
+              !timerReady ||
+              (!!timer.status && timer.status !== "pending")
+            }
             onClick={() =>
               run(async () => {
                 const result = await cancelPowerTimer(

@@ -6,6 +6,13 @@ export interface PowerTimer {
   power: boolean;
   dueAt: string;
   executor: "device" | "service";
+  status?:
+    | "pending"
+    | "claimed"
+    | "acknowledged"
+    | "unknown"
+    | "cancelled"
+    | "expired";
 }
 export interface PowerTimerPort {
   create(
@@ -88,7 +95,16 @@ function validTimer(timer: PowerTimer, device: Device): boolean {
     timer.id.length <= 200 &&
     typeof timer.power === "boolean" &&
     Number.isFinite(Date.parse(timer.dueAt)) &&
-    timer.executor === device.powerTimer?.executor
+    timer.executor === device.powerTimer?.executor &&
+    (timer.status === undefined ||
+      [
+        "pending",
+        "claimed",
+        "acknowledged",
+        "unknown",
+        "cancelled",
+        "expired",
+      ].includes(timer.status))
   );
 }
 export async function addPowerTimer(

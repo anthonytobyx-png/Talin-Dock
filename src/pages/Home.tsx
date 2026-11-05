@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun, Film, Power, SlidersHorizontal } from "lucide-react";
 import { useStore } from "../state/Store";
 import { rooms, widgetNames, type Widget } from "../state/model";
-import { devices } from "../devices/model";
+import { useDevices } from "../data/TuyaContext";
 import { Panel, Go, Modal } from "../components/primitives";
 import { CalendarContent, WeatherContent } from "../components/ResourceState";
 import { DeviceCard } from "../components/DeviceCard";
@@ -15,6 +15,7 @@ export function useClock() {
   return now;
 }
 export function Home() {
+  const devices = useDevices();
   const { state, dispatch } = useStore();
   const now = useClock();
   const profile = state.profiles[state.activeProfile];
@@ -56,21 +57,34 @@ export function Home() {
           <WeatherContent />
         </Panel>
       );
-    if (widget === "humidity" || widget === "temperature")
+    if (widget === "humidity" || widget === "temperature") {
+      const sensor =
+        widget === "humidity"
+          ? devices.find(
+              (d) =>
+                d.room === state.room &&
+                d.dataSource &&
+                typeof d.readings.humidity === "number",
+            )
+          : undefined;
       return (
         <Panel title={widgetNames[widget]}>
           <span className="eyebrow">{state.room}</span>
           <strong className="reading">
-            —<span>{widget === "humidity" ? "%" : "°"}</span>
+            {sensor?.readings.humidity ?? "—"}
+            <span>{widget === "humidity" ? "%" : "°"}</span>
           </strong>
           <p>
-            {state.room === "Bedroom" && widget === "humidity"
-              ? "Sensor not configured"
-              : "No confirmed sensor in this room"}
+            {sensor
+              ? `Latest reported humidity · measurement time unavailable · ${sensor.status}. Retrieved ${sensor.updatedAt ? new Date(sensor.updatedAt).toLocaleString() : "Unknown"}`
+              : state.room === "Bedroom" && widget === "humidity"
+                ? "Sensor not configured"
+                : "No confirmed sensor in this room"}
           </p>
           <Go to="Devices">View devices</Go>
         </Panel>
       );
+    }
     if (widget === "media")
       return (
         <Panel title="Media on iPad" className="wide">
@@ -260,7 +274,11 @@ export function Home() {
       <footer className="dashboard-footer">
         <span className="status-dot" />
         On this iPad · preferences stored locally
-        <span>Devices awaiting setup</span>
+        <span>
+          {devices.some((d) => d.status !== "unconfigured")
+            ? "Device connection available"
+            : "Devices awaiting setup"}
+        </span>
       </footer>
       {ambient && (
         <Modal title="Ambient" close={() => setAmbient(false)}>
@@ -268,7 +286,7 @@ export function Home() {
             {now.toLocaleDateString(undefined, { dateStyle: "full" })}
           </p>
           <div className="ambient-clock">{time}</div>
-          <p>{state.room} · Devices awaiting setup</p>
+          <p>{state.room} · Device status in Devices</p>
           <button onClick={() => setAmbient(false)}>Return to dashboard</button>
         </Modal>
       )}

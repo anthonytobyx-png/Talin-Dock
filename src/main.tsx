@@ -5,11 +5,14 @@ import App from "./App";
 import { WeatherContext } from "./data/WeatherContext";
 import { Store } from "./state/Store";
 import "./styles.css";
+import { TuyaProvider } from "./data/TuyaContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Store>
       <WeatherContext>
-        <App />
+        <TuyaProvider>
+          <App />
+        </TuyaProvider>
       </WeatherContext>
     </Store>
   </React.StrictMode>,

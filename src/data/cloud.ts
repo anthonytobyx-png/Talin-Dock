@@ -36,6 +36,8 @@ export async function cloudRequest<T>(
         value.error || "Cloud request failed",
         response.status,
       );
+    if (path === "login" || path === "logout")
+      window.dispatchEvent(new Event("talin-session-changed"));
     return value;
   } catch (error) {
     if (error instanceof CloudError) throw error;

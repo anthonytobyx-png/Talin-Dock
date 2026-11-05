@@ -20,6 +20,12 @@ test("private preferences require authentication and same-origin writes", async 
   });
   expect((await request.get("/api/preferences")).status()).toBe(401);
   expect((await request.get("/api/device-actions")).status()).toBe(401);
+  expect((await request.get("/api/tuya")).status()).toBe(401);
+  expect(
+    (
+      await request.post("/api/tuya/connect", { data: { userCode: "fixture" } })
+    ).status(),
+  ).toBe(403);
   expect(
     (await request.post("/api/device-actions", { data: {} })).status(),
   ).toBe(403);
@@ -45,6 +51,9 @@ test("D1 persists preferences, rejects stale revisions and revokes sessions", as
   expect(cookie).toContain("SameSite=Strict");
   const read = await request.get("/api/preferences");
   const actions = await request.get("/api/device-actions");
+  const tuya = await request.get("/api/tuya");
+  expect(tuya.headers()["cache-control"]).toBe("no-store");
+  expect(await tuya.json()).toEqual({ available: false, connected: false });
   expect(actions.headers()["cache-control"]).toBe("no-store");
   expect(await actions.json()).toEqual({ devices: {} });
   expect(

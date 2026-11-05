@@ -13,7 +13,10 @@ import {
   Home as HomeIcon,
 } from "lucide-react";
 import { useStore } from "../state/Store";
-import { devices, canControl, type ControlCapability } from "../devices/model";
+import { canControl, type ControlCapability } from "../devices/model";
+import { useDevices, useTuya } from "../data/TuyaContext";
+import { TuyaConnection } from "../components/TuyaConnection";
+import { tuyaSharing } from "../integrations/tuyaSharing";
 import { DeviceCard } from "../components/DeviceCard";
 import { Panel, Go } from "../components/primitives";
 import { CalendarContent } from "../components/ResourceState";
@@ -22,6 +25,8 @@ import { DeviceControls } from "../components/DeviceControls";
 import { AlexaPowerControls } from "../components/AlexaPowerControls";
 import { samsungLocal, tuyaCloud } from "../integrations/unconfigured";
 export function Devices() {
+  const devices = useDevices(),
+    tuya = useTuya();
   const { state } = useStore();
   return (
     <>
@@ -41,7 +46,9 @@ export function Devices() {
               <p>
                 {device.type === "tv"
                   ? "Connect a supported Samsung integration to enable verified power, timer and remote controls. Local pairing alone does not connect the hosted app."
-                  : "Tuya cloud and local-key routes need capability and free-access verification before humidity, power or timers can be enabled."}
+                  : tuya.connected
+                    ? "Connected through Smart Life. Sensor measurement age is unavailable; the retrieval time is shown separately."
+                    : "Connect Smart Life below to discover humidity, power and timer capabilities."}
               </p>
               <p>
                 {device.model || "Exact model to be confirmed"} · {device.room}
@@ -59,10 +66,14 @@ export function Devices() {
                 device.id,
               ) && <span className="badge">Your favourite</span>}
               <Go to="Settings">Integration settings</Go>
-              <AlexaPowerControls deviceId={device.id} />
+              {device.type === "tv" ? (
+                <AlexaPowerControls deviceId={device.id} />
+              ) : (
+                <TuyaConnection />
+              )}
               <DeviceControls
                 device={device}
-                adapter={[samsungLocal, tuyaCloud].find(
+                adapter={[samsungLocal, tuyaCloud, tuyaSharing].find(
                   (adapter) => adapter.id === device.adapterId,
                 )}
               />
@@ -100,6 +111,7 @@ function Intro({
   );
 }
 export function Remote() {
+  const devices = useDevices();
   const device = devices[0];
   const key = (
     label: string,

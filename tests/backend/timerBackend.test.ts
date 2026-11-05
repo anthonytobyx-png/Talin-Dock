@@ -1,7 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { DatabaseSync, type SQLInputValue } from "node:sqlite";
-import { readFileSync } from "node:fs";
 import { afterEach, expect, it, vi } from "vitest";
+import { database } from "./database";
 import { runTimers, runnerReady } from "../../server/timers";
 import { handleTimerApi } from "../../server/timerApi";
 import { handleApi } from "../../server/api";
@@ -14,48 +13,7 @@ const secret = JSON.stringify({
     off: { trigger, token, verified: true },
   },
 });
-function database() {
-  const sql = new DatabaseSync(":memory:");
-  for (const name of [
-    "0001_household.sql",
-    "0002_alexa_commands.sql",
-    "0003_power_timers.sql",
-  ])
-    sql.exec(
-      readFileSync(
-        new URL(`../../migrations/${name}`, import.meta.url),
-        "utf8",
-      ),
-    );
-  const prepare = (query: string) => {
-    let args: SQLInputValue[] = [];
-    const statement = sql.prepare(query);
-    const result = {
-      bind(...values: SQLInputValue[]) {
-        args = values;
-        return result;
-      },
-      async first() {
-        return statement.get(...args) || null;
-      },
-      async all() {
-        return { results: statement.all(...args) };
-      },
-      async run() {
-        return { meta: { changes: Number(statement.run(...args).changes) } };
-      },
-    };
-    return result;
-  };
-  return {
-    sql,
-    db: {
-      prepare,
-      batch: async (statements: { run: () => Promise<unknown> }[]) =>
-        Promise.all(statements.map((s) => s.run())),
-    } as unknown as D1Database,
-  };
-}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();

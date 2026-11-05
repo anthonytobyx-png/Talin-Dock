@@ -59,7 +59,8 @@ export async function sendCommand(
             ok: false,
             error: {
               code: "TIMEOUT",
-              message: "The device did not acknowledge within 5 seconds.",
+              message:
+                "Command outcome unknown after 5 seconds. The device may have received it; refresh its state before retrying.",
             },
           });
         }, 5000);
