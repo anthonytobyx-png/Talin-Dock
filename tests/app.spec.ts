@@ -370,7 +370,7 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
   await page.goto("/");
   await page
     .getByRole("navigation")
-    .getByRole("button", { name: "Devices", exact: true })
+    .getByRole("button", { name: "Settings", exact: true })
     .click();
   const section = page.getByRole("region", {
     name: "Smart Life connection",
@@ -396,6 +396,13 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
     })
     .click();
   await expect(section).toContainText("Power reported by Smart Life: Off");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  await expect(
+    section.getByRole("button", { name: "Reconnect Smart Life", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByText("Latest reported humidity · measurement time unavailable.", {
       exact: false,

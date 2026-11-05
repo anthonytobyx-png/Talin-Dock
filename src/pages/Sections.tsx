@@ -66,7 +66,7 @@ export function Devices() {
                   device.id,
                 ) && <span className="badge">Your favourite</span>}
                 <Go to="Settings">Integration settings</Go>
-                <TuyaConnection />
+                <TuyaConnection showSetup={false} />
                 <DeviceControls
                   device={device}
                   adapter={[samsungLocal, tuyaCloud, tuyaSharing].find(

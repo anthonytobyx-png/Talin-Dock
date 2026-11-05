@@ -4,6 +4,7 @@ import { devices } from "../devices/model";
 import { Panel } from "../components/primitives";
 import { CloudSettings } from "../components/CloudSettings";
 import { BackupSettings } from "../components/BackupSettings";
+import { HouseholdConnections } from "../components/HouseholdConnections";
 import { WeatherSettings } from "../components/WeatherSettings";
 export function Settings() {
   const { state, dispatch } = useStore();
@@ -154,6 +155,7 @@ export function Settings() {
           </Panel>
           <WeatherSettings />
           <CloudSettings />
+          <HouseholdConnections />
           <BackupSettings />
           <Panel title="Integrations">
             <span className="badge">Not configured</span>
@@ -162,14 +164,15 @@ export function Settings() {
               authorisation before any private data can be read.
             </p>
             <p>
-              Device pairing and credentials will be handled by a future
-              authenticated integration service, never by browser storage.
+              Existing device connections are managed above. Widgets use those
+              saved connections; they do not need individual passwords.
             </p>
           </Panel>
           <Panel title="About this build">
             <p>Web app · cloud storage ready</p>
             <p>
-              No devices, calendars or computers are connected. No audio is
+              Connected devices use the saved household integrations. Calendars
+              and computer connections remain unconfigured. No audio is
               recorded. Local preferences may be cleared by Safari. Use backup
               or the authenticated cloud copy to keep another copy.
             </p>

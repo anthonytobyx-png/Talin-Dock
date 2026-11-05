@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useSamsung } from "../data/SamsungContext";
-import { Panel } from "./primitives";
+import { Panel, Go } from "./primitives";
 export function SamsungLocalConnection() {
   const hub = useSamsung(),
-    [address, setAddress] = useState(hub.endpoint),
     [message, setMessage] = useState(""),
     [minutes, setMinutes] = useState("30"),
     [action, setAction] = useState("off");
@@ -137,48 +136,7 @@ export function SamsungLocalConnection() {
         </ul>
         <p role="status">{message}</p>
         {hub.error && <p role="alert">{hub.error}</p>}
-        <details>
-          <summary>TV connection setup</summary>
-          <p>
-            This connection needs the household's Talin server certificate and
-            client identity installed on this iPad. Keys stay in the device
-            keychain. Do not dismiss certificate warnings. If the hub restarts,
-            read its new local-tls port from the Talin device in SmartThings and
-            update the address below.
-          </p>
-          <p>
-            One-time pairing:{" "}
-            <a href="/talin-tv-root.cer">
-              download the public Talin TV certificate
-            </a>
-            , review it in iPad Settings and install the separately supplied
-            password-encrypted client identity. Certificate trust and identity
-            installation require your approval on the iPad. Never send the
-            identity password in chat.
-          </p>
-          <label className="field">
-            TV hub HTTPS address
-            <input
-              type="url"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              autoCapitalize="none"
-              spellCheck={false}
-            />
-          </label>
-          <button
-            disabled={hub.busy}
-            onClick={() =>
-              setMessage(
-                hub.configure(address)
-                  ? "Hub address saved on this device. Refresh to verify it."
-                  : "Use https://192.168.1.3 followed by the hub's reported port.",
-              )
-            }
-          >
-            Save TV hub address
-          </button>
-        </details>
+        <Go to="Settings">Household connection settings</Go>
         <button disabled={hub.busy} onClick={() => void hub.refresh()}>
           Refresh TV hub status
         </button>

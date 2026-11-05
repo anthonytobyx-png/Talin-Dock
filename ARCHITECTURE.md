@@ -1,5 +1,16 @@
 # Selected architecture
 
+## Current setup policy — 5 November 2026
+
+This section supersedes earlier continuation snapshots below.
+
+- Finish the web app and connections first. The owner wants the setup handled by the agent and no repeated iPad or per-widget password steps. The temporary encrypted-identity transfer is stopped; no iPad certificate or identity has been installed automatically.
+- Household Settings is the single place for cloud sign-in, provider consent and advanced home connection settings. Device widgets use saved connections and expose controls/readings, without separate pairing/password forms. Existing household preferences and provider credentials are preserved.
+- One household session authorises cloud APIs; each private endpoint still validates authentication. Provider credentials stay server-side. The current TV route also requires a one-time OS client identity and trusted household server certificate, rather than a daily widget password. Household cloud sign-out is not revocation of that separate OS identity. No security checks are removed to imitate unified sign-in.
+- The TV hub's mutual-TLS endpoint, native SmartThings On/Off rules, one-minute timer execution, cancellation and saved history across driver updates were verified. Provider reads confirmed power changes and the starting Off state was restored. Current endpoint: https://192.168.1.3:42047. Native rules execute in Samsung Cloud and require internet; no PC runtime, Alexa, port forwarding or paid API is used. Smart Life humidity/power/countdown/cloud timers retain the existing direct route.
+- Talin controls were published in 1f18d385788f494ed2d744968b543737a5900932; GitHub verification and Pages deployment succeeded. Actual Safari/iPad and physical PC-shutdown acceptance remain incomplete. The household certificates expire 7 December 2027; hub restarts may change the local port.
+- The existing Cloudflare dashboard session is usable, but its domain overview lists no registered domains. A publicly trusted household LAN hostname has not been established. iPadOS trust/identity approval cannot be performed remotely through this PC's tools. That physical limitation remains; onboarding is deferred while the web app is completed. Keep debugger certificate verification unchanged and everything free.
+
 ## Verified continuation — 5 November 2026
 
 This section supersedes older phase/setup statements below.

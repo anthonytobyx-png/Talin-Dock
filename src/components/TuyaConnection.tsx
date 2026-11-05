@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTuya, tuyaRequest } from "../data/TuyaContext";
 import { commandId } from "../integrations/commandId";
-export function TuyaConnection() {
+export function TuyaConnection({ showSetup = true }: { showSetup?: boolean }) {
   const connection = useTuya();
   const [code, setCode] = useState(""),
     [qr, setQr] = useState(""),
@@ -105,12 +105,12 @@ export function TuyaConnection() {
       >
         Refresh Smart Life state
       </button>
-      {connection.available && (
+      {showSetup && connection.available && (
         <button disabled={busy} onClick={() => setSetup(!setup)}>
           {connection.connected ? "Reconnect Smart Life" : "Connect Smart Life"}
         </button>
       )}
-      {connection.available && setup && !qr && (
+      {showSetup && connection.available && setup && !qr && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -157,7 +157,7 @@ export function TuyaConnection() {
           </button>
         </form>
       )}
-      {qr && (
+      {showSetup && qr && (
         <>
           <img
             src={qr}
