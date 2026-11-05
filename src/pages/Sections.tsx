@@ -42,7 +42,7 @@ export function Devices() {
               device={device}
               large={device.type === "dehumidifier"}
             />
-            <Panel title="Connection plan">
+            <Panel title="Connection">
               <p>
                 {device.type === "tv"
                   ? "Connect a supported Samsung integration to enable verified power, timer and remote controls. Local pairing alone does not connect the hosted app."

@@ -142,7 +142,7 @@ export default function App() {
             </span>
             <span className="profile-chevron">⌃</span>
           </button>
-          <p>Phase 1 · devices not connected</p>
+          <p>Your household dashboard</p>
         </div>
       </aside>
       <main id="content" tabIndex={-1}>

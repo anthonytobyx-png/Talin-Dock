@@ -1,5 +1,6 @@
 -- Security checks run in Lua with mocked hub APIs; no network or credentials.
 local passed = 0
+package.loaded["roots"] = "public-root-fixture"
 for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-certificate-api", "missing-hostname-api", "wrong-hostname", "http-error"}) do
   local emitted, sent
   local conn = {}
@@ -18,7 +19,7 @@ for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-c
   end
   package.loaded["cosock"] = { socket = { tcp = function() return conn end }, ssl = {
     wrap = function(sock, config)
-      assert(config.verify == "peer" and config.cafile == "./roots.pem")
+      assert(config.verify == "peer" and config.cafile == "public-root-fixture")
       assert(config.options[6] == "no_tlsv1_1" or config.options[5] == "no_tlsv1_1")
       return sock
     end,
@@ -27,7 +28,7 @@ for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-c
     closed = function() return "closed" end, open = function() return "open" end,
   } }, refresh = { ID = "refresh", commands = { refresh = { NAME = "refresh" } } } }
   package.loaded["st.driver"] = function(_, config)
-    local driver = { run = function(self) config.lifecycle_handlers.init(self, {
+    local driver = { call_with_delay = function() end, run = function(self) config.lifecycle_handlers.init(self, {
       emit_event = function(_, value) emitted = value end,
     }) end }
     return driver

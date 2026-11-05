@@ -63,3 +63,7 @@ Once deployed over HTTPS, open in Safari and choose Share → Add to Home Screen
 Samsung TV and Tuya dehumidifier are unconfigured records with no confirmed capabilities. All real controls/scenes are disabled; no hardware is contacted. Google, iCloud and Outlook are represented as calendar provider options but no account is connected. The web app cannot access the native iPad calendar store. Voice, companions, USB, display streaming and automatic kiosk relaunch remain outside this hardware-independent phase.
 
 Original artboards/screenshots were not supplied; visual comparison and physical Safari/iPad performance tests are still required. The original five documents remain byte-for-byte in [docs/specifications](docs/specifications/PRODUCT_SPECIFICATION.md). Read [architecture](ARCHITECTURE.md), [status](IMPLEMENTATION_STATUS.md) and the [home checklist](HOME_SETUP_CHECKLIST.md).
+
+## Hub diagnostic
+
+The owner-only SmartThings driver channel contains a read-only [hub HTTPS probe](integrations/smartthings-probe/README.md). Its notice describes the exact diagnostic, with no additional agreement, subscription or payment. No invitations are published. It is not a completed TV adapter and does not enable TV controls. The production Smart Life adapter is separate.

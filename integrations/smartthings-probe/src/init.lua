@@ -4,6 +4,7 @@ local capabilities = require "st.capabilities"
 local cosock = require "cosock"
 local socket = cosock.socket
 local ssl = cosock.ssl
+local ROOTS = require "roots"
 local HOST = "talin-dock.pages.dev"
 
 local function probe(driver, device)
@@ -18,7 +19,7 @@ local function probe(driver, device)
       conn = assert(ssl.wrap(conn, {
         mode = "client", protocol = "any", verify = "peer",
         options = {"all", "no_sslv2", "no_sslv3", "no_tlsv1", "no_tlsv1_1"},
-        cafile = "./roots.pem",
+        cafile = ROOTS,
       }))
       conn:settimeout(8)
       stage = "tls-handshake"
@@ -55,4 +56,5 @@ local driver = Driver("talin-hub-https-probe", {
   lifecycle_handlers = { init = probe },
   capability_handlers = { [capabilities.refresh.ID] = { [capabilities.refresh.commands.refresh.NAME] = probe } },
 })
+driver:call_with_delay(2, function() discovery(driver) end, "create-read-only-probe")
 driver:run()

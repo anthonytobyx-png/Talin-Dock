@@ -60,7 +60,7 @@ export function DeviceCard({
           from {device.dataSource}.
         </p>
       )}
-      {large && (
+      {large && device.status === "unconfigured" && (
         <p>
           Humidity, power and timers require a verified connection and support
           from this device. Unavailable actions stay disabled.
