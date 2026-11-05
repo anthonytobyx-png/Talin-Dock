@@ -3,6 +3,7 @@
   "name": "talin-dock-timers",
   "main": "server/timerWorker.ts",
   "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["global_fetch_strictly_public"],
   "account_id": "be46faf4dc2aa5b39e703ec5103d67c1",
   "workers_dev": false,
   "preview_urls": false,
