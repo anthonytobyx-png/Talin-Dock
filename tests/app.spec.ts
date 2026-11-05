@@ -403,6 +403,26 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
   await expect(section).toContainText("Power reported by Smart Life: On");
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ action: "on" });
+  await page.context().setOffline(true);
+  await expect(section).toContainText(
+    "Offline. Previous Smart Life readings are stale",
+  );
+  await expect(
+    controls.getByRole("button", { name: "Turn off", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    section.getByRole("button", {
+      name: "Set device 2-hour countdown",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(page.getByText("Stale reading", { exact: false })).toBeVisible();
+  expect(commands).toHaveLength(1);
+  await page.context().setOffline(false);
+  await expect(
+    controls.getByRole("button", { name: "Turn off", exact: true }),
+  ).toBeEnabled();
+
   await expect(
     controls.getByRole("button", { name: "Add timer", exact: true }),
   ).toBeDisabled();

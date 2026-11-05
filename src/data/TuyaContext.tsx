@@ -40,6 +40,8 @@ export async function tuyaRequest<T>(
     signal?.removeEventListener("abort", abort);
   }
 }
+const offlineMessage =
+  "Offline. Previous Smart Life readings are stale; reconnect before using controls.";
 interface Data {
   available: boolean;
   connected: boolean;
@@ -69,6 +71,10 @@ export function TuyaProvider({ children }: { children: ReactNode }) {
   const pending = useRef(false);
   const generation = useRef(0);
   const refresh = useCallback(async (): Promise<void> => {
+    if (!navigator.onLine) {
+      setError(offlineMessage);
+      return;
+    }
     if (pending.current) return;
     pending.current = true;
     setLoading(true);
@@ -80,7 +86,7 @@ export function TuyaProvider({ children }: { children: ReactNode }) {
           ...next,
           state: next.state || (next.connected ? previous.state : undefined),
         }));
-        setError(next.error || "");
+        setError(navigator.onLine ? next.error || "" : offlineMessage);
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : "Smart Life unavailable";
@@ -103,6 +109,11 @@ export function TuyaProvider({ children }: { children: ReactNode }) {
     const visible = () => {
       if (!document.hidden && navigator.onLine) void refresh();
     };
+    const offline = () => {
+      generation.current++;
+      setError(offlineMessage);
+      setLoading(false);
+    };
     const session = () => {
       generation.current++;
       setData({ available: false, connected: false });
@@ -111,12 +122,14 @@ export function TuyaProvider({ children }: { children: ReactNode }) {
     const timer = setInterval(visible, 60000);
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("online", visible);
+    window.addEventListener("offline", offline);
     window.addEventListener("talin-device-changed", visible);
     window.addEventListener("talin-session-changed", session);
     return () => {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("online", visible);
+      window.removeEventListener("offline", offline);
       window.removeEventListener("talin-device-changed", visible);
       window.removeEventListener("talin-session-changed", session);
     };
@@ -139,11 +152,12 @@ export function useDevices(): Device[] {
     return {
       ...device,
       adapterId: "tuya-sharing",
-      status: connection.error
-        ? "unavailable"
-        : snapshot.online
-          ? "online"
-          : "offline",
+      status:
+        connection.error || !navigator.onLine
+          ? "unavailable"
+          : snapshot.online
+            ? "online"
+            : "offline",
       updatedAt: snapshot.observedAt,
       confirmedCapabilities: [
         ...(snapshot.humidity !== null ? ["humidity" as const] : []),
