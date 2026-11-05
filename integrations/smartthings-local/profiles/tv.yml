@@ -1,0 +1,12 @@
+name: talin-tv-local
+components:
+  - id: main
+    capabilities:
+      - id: talentlaugh16714.talinHubDiagnostic
+        version: 1
+      - id: talentlaugh16714.talinTvLocalBridge
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Television

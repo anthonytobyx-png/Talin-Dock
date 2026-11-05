@@ -1,6 +1,7 @@
 import { Droplets, Tv } from "lucide-react";
 import { type Device, sensorValue } from "../devices/model";
 import { Panel, Go } from "./primitives";
+import { useSamsung } from "../data/SamsungContext";
 export function DeviceCard({
   device,
   large = false,
@@ -8,6 +9,7 @@ export function DeviceCard({
   device: Device;
   large?: boolean;
 }) {
+  const hub = useSamsung();
   const humidity =
     sensorValue(device, "humidity") ||
     (device.measurementTimeUnknown &&
@@ -37,12 +39,22 @@ export function DeviceCard({
       ) : (
         <div className="tv-preview">
           <Tv size={40} />
-          <span>No TV connected</span>
+          <span>
+            {hub.snapshot
+              ? `SmartThings reported: ${hub.snapshot.reportedPower}`
+              : "TV hub not connected"}
+          </span>
         </div>
       )}
       <div className="device-footer">
         <span className="badge">
-          {device.status === "unconfigured" ? "Not configured" : device.status}
+          {device.type === "tv"
+            ? hub.ready
+              ? "Secure hub reachable"
+              : "Hub unavailable"
+            : device.status === "unconfigured"
+              ? "Not configured"
+              : device.status}
         </span>
         {device.type === "tv" ? (
           <Go to="Remote">Remote</Go>

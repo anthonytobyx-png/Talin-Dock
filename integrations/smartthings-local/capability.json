@@ -1,0 +1,63 @@
+{
+  "name": "Talin TV Local Bridge",
+  "version": 1,
+  "status": "proposed",
+  "attributes": {
+    "request": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off",
+              "status"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "value"
+        ]
+      }
+    },
+    "reportedPower": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off",
+              "unknown"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "value"
+        ]
+      }
+    }
+  },
+  "commands": {
+    "reportPower": {
+      "name": "reportPower",
+      "arguments": [
+        {
+          "name": "power",
+          "optional": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

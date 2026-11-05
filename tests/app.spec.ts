@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
+  await page.route("https://192.168.1.3:*/**", (route) => route.abort());
   await page.route("https://api.open-meteo.com/**", (route) =>
     route.fulfill({
       json: {
@@ -89,7 +90,7 @@ for (const size of [
       .getByRole("button", { name: "Remote", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Power", exact: true }),
+      page.getByRole("button", { name: "Turn on", exact: true }),
     ).toBeDisabled();
     expect(errors).toEqual([]);
   });
@@ -250,7 +251,7 @@ test("unconnected devices expose power and timers without enabling unverified co
     .getByRole("navigation")
     .getByRole("button", { name: "Devices", exact: true })
     .click();
-  for (const name of ["Samsung TV", "Dehumidifier"]) {
+  for (const name of ["Dehumidifier"]) {
     const controls = page.getByRole("region", {
       name: `${name} power and timers`,
     });
@@ -270,47 +271,51 @@ test("unconnected devices expose power and timers without enabling unverified co
   }
 });
 
-test("Alexa controls require verified actions and distinguish trigger acknowledgement from device state", async ({
+test("TV local controls distinguish hub acknowledgement, reported power and stale connections", async ({
   page,
+  context,
 }) => {
   const commands: unknown[] = [];
-  await page.route("**/api/power-timers", (route) =>
-    route.fulfill({ json: { ready: false, timers: [] } }),
-  );
-  await page.route("**/api/device-actions", async (route) => {
+  await page.route("https://192.168.1.3:*/**", async (route) => {
     if (route.request().method() === "POST") {
       commands.push(route.request().postDataJSON());
-      await route.fulfill({
-        json: { acknowledged: true, outcome: "trigger-acknowledged" },
-      });
+      await route.fulfill({ json: { accepted: true, deviceConfirmed: false } });
     } else
-      await route.fulfill({ json: { devices: { "samsung-tv": ["off"] } } });
+      await route.fulfill({
+        json: {
+          version: 1,
+          reportedPower: "off",
+          reportedAt: 1793880000,
+          timers: {},
+        },
+      });
   });
   await page.goto("/");
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Devices", exact: true })
     .click();
-  const panel = page
-    .getByRole("region", { name: "Alexa routine power controls" })
-    .first();
-  await expect(
-    panel.getByRole("button", { name: "Alexa: turn off", exact: true }),
-  ).toBeDisabled();
-  await panel
-    .getByRole("button", { name: "Check Alexa connection", exact: true })
-    .click();
-  await expect(
-    panel.getByRole("button", { name: "Alexa: turn on", exact: true }),
-  ).toBeDisabled();
-  await panel
-    .getByRole("button", { name: "Alexa: turn off", exact: true })
-    .click();
+  const panel = page.getByRole("region", {
+    name: "Samsung TV power and timers",
+  });
+  await expect(panel).toContainText("Secure TV hub reachable");
+  await panel.getByRole("button", { name: "Turn on", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText(
-    "Device state is not reported",
+    "request accepted by the hub",
   );
+  await expect(panel).toContainText("underlying TV sample time is unavailable");
   expect(commands).toHaveLength(1);
-  expect(commands[0]).toMatchObject({ deviceId: "samsung-tv", action: "off" });
+  expect(commands[0]).toMatchObject({ action: "on" });
+  await context.setOffline(true);
+  await expect(
+    panel.getByRole("button", { name: "Turn off", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    panel.getByRole("button", { name: "Add TV timer", exact: true }),
+  ).toBeDisabled();
+  await expect(panel.getByRole("alert")).toContainText("stale");
+  expect(commands).toHaveLength(1);
+  await context.setOffline(false);
 });
 
 test("Smart Life connects inside Talin, labels unknown sample age, and keeps credentials out of local storage", async ({

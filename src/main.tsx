@@ -6,12 +6,15 @@ import { WeatherContext } from "./data/WeatherContext";
 import { Store } from "./state/Store";
 import "./styles.css";
 import { TuyaProvider } from "./data/TuyaContext";
+import { SamsungProvider } from "./data/SamsungContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Store>
       <WeatherContext>
         <TuyaProvider>
-          <App />
+          <SamsungProvider>
+            <App />
+          </SamsungProvider>
         </TuyaProvider>
       </WeatherContext>
     </Store>

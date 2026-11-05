@@ -1,0 +1,52 @@
+local bridge = dofile("integrations/smartthings-local/src/bridge.lua")
+local now, saved, emitted, tasks = 100000, nil, {}, {}
+local store = {get=function() return saved end, set=function(state) saved=state end}
+local function make()
+  return bridge.new(store, function(action) emitted[#emitted+1]=action end,
+    function(delay, task) tasks[#tasks+1]={delay=delay,run=task} end, function() return now end)
+end
+local api = make()
+local headers = {origin=bridge.origin,["content-type"]="text/plain"}
+local checks = 0
+local function check(condition) assert(condition) checks=checks+1 end
+local function call(path, body, supplied) return api.handle("POST",path,supplied or headers,body) end
+check(call("/v1/power",{id="request-000000001",action="on"},{origin="https://evil.example"}) == 403)
+check(#emitted == 0)
+local status, result = call("/v1/power",{id="request-000000001",action="on"})
+check(status == 202 and result.accepted and not result.deviceConfirmed and #emitted == 1)
+status, result = call("/v1/power",{id="request-000000001",action="on"})
+check(status == 202 and result.duplicate and #emitted == 1)
+check(call("/v1/power",{id="short",action="off"}) == 403)
+check(call("/v1/power",{id="request-000000002",action="toggle"}) == 400)
+check(call("/v1/timers",{id="timer-00000000001",action="off",seconds=59}) == 400)
+check(call("/v1/timers",{id="timer-00000000001",action="off",seconds=86401}) == 400)
+status, result = call("/v1/timers",{id="timer-00000000001",action="off",seconds=60})
+check(status == 201 and result.status == "pending" and #emitted == 1)
+check(call("/v1/timers",{id="timer-00000000001",action="off",seconds=60}) == 200 and #tasks == 1)
+check(call("/v1/timers/cancel",{id="cancel-0000000001",timerId="timer-00000000001"}) == 200)
+now=now+60 tasks[1].run()
+check(#emitted == 1 and saved.timers[1].status == "cancelled")
+call("/v1/timers",{id="timer-00000000002",action="off",seconds=60})
+now=now+60 tasks[#tasks].run()
+check(#emitted == 2 and emitted[2] == "off" and saved.timers[2].status == "sent")
+tasks[#tasks].run()
+check(#emitted == 2)
+check(call("/v1/timers/cancel",{id="cancel-0000000002",timerId="timer-00000000002"}) == 409)
+call("/v1/timers",{id="timer-00000000003",action="on",seconds=60})
+now=now+181 tasks[#tasks].run()
+check(#emitted == 2 and saved.timers[3].status == "expired")
+call("/v1/timers",{id="timer-00000000004",action="off",seconds=60})
+api=make() now=now+60 tasks[#tasks].run()
+check(#emitted == 3 and saved.timers[4].status == "sent")
+saved.timers[4].status="claimed" api=make()
+check(saved.timers[4].status == "unknown" and #emitted == 3)
+api.report("on")
+status,result=api.handle("GET","/v1/status",{})
+check(status == 200 and result.reportedPower == "on" and result.reportedAt == now)
+api.report("bogus")
+_,result=api.handle("GET","/v1/status",{}) check(result.reportedPower == "on")
+check(api.handle("OPTIONS","/v1/power",{origin=bridge.origin,["access-control-request-method"]="POST"}) == 204)
+check(api.handle("OPTIONS","/v1/power",{origin="https://evil.example",["access-control-request-method"]="POST"}) == 403)
+for i=1,256 do saved.requests["limit-request-"..i]=now end
+check(call("/v1/power",{id="request-000000003",action="off"}) == 503 and #emitted == 3)
+print(checks.." authenticated bridge, idempotency and durable timer checks passed")

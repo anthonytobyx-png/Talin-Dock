@@ -3,12 +3,10 @@ import {
   Monitor,
   Mic,
   Laptop,
-  Tv,
   ArrowUp,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
-  Power,
   Volume2,
   Home as HomeIcon,
 } from "lucide-react";
@@ -22,7 +20,7 @@ import { Panel, Go } from "../components/primitives";
 import { CalendarContent } from "../components/ResourceState";
 import { CalendarConnections } from "../components/CalendarConnections";
 import { DeviceControls } from "../components/DeviceControls";
-import { AlexaPowerControls } from "../components/AlexaPowerControls";
+import { SamsungLocalConnection } from "../components/SamsungLocalConnection";
 import { samsungLocal, tuyaCloud } from "../integrations/unconfigured";
 export function Devices() {
   const devices = useDevices(),
@@ -36,50 +34,49 @@ export function Devices() {
         description="Power, timers and readings appear according to each connected device’s verified capabilities."
       />
       <div className="two-columns">
-        {devices.map((device) => (
-          <div key={device.id}>
-            <DeviceCard
-              device={device}
-              large={device.type === "dehumidifier"}
-            />
-            <Panel title="Connection">
-              <p>
-                {device.type === "tv"
-                  ? "Connect a supported Samsung integration to enable verified power, timer and remote controls. Local pairing alone does not connect the hosted app."
-                  : tuya.connected
+        {devices.map((device) =>
+          device.type === "tv" ? (
+            <SamsungLocalConnection key={device.id} />
+          ) : (
+            <div key={device.id}>
+              <DeviceCard
+                device={device}
+                large={device.type === "dehumidifier"}
+              />
+              <Panel title="Connection">
+                <p>
+                  {tuya.connected
                     ? "Connected through Smart Life. Sensor measurement age is unavailable; the retrieval time is shown separately."
                     : "Connect Smart Life below to discover humidity, power and timer capabilities."}
-              </p>
-              <p>
-                {device.model || "Exact model to be confirmed"} · {device.room}
-              </p>
-              <p>
-                Last updated: {device.updatedAt || "Not yet received"} ·
-                Confirmed capabilities:{" "}
-                {device.confirmedCapabilities
-                  .map((capability) =>
-                    capability === "powerTimer" ? "power timers" : capability,
-                  )
-                  .join(", ") || "None verified"}
-              </p>
-              {state.profiles[state.activeProfile].favourites.includes(
-                device.id,
-              ) && <span className="badge">Your favourite</span>}
-              <Go to="Settings">Integration settings</Go>
-              {device.type === "tv" ? (
-                <AlexaPowerControls deviceId={device.id} />
-              ) : (
+                </p>
+                <p>
+                  {device.model || "Exact model to be confirmed"} ·{" "}
+                  {device.room}
+                </p>
+                <p>
+                  Last updated: {device.updatedAt || "Not yet received"} ·
+                  Confirmed capabilities:{" "}
+                  {device.confirmedCapabilities
+                    .map((capability) =>
+                      capability === "powerTimer" ? "power timers" : capability,
+                    )
+                    .join(", ") || "None verified"}
+                </p>
+                {state.profiles[state.activeProfile].favourites.includes(
+                  device.id,
+                ) && <span className="badge">Your favourite</span>}
+                <Go to="Settings">Integration settings</Go>
                 <TuyaConnection />
-              )}
-              <DeviceControls
-                device={device}
-                adapter={[samsungLocal, tuyaCloud, tuyaSharing].find(
-                  (adapter) => adapter.id === device.adapterId,
-                )}
-              />
-            </Panel>
-          </div>
-        ))}
+                <DeviceControls
+                  device={device}
+                  adapter={[samsungLocal, tuyaCloud, tuyaSharing].find(
+                    (adapter) => adapter.id === device.adapterId,
+                  )}
+                />
+              </Panel>
+            </div>
+          ),
+        )}
       </div>
       <Panel title="Adding more devices">
         <p>
@@ -131,18 +128,11 @@ export function Remote() {
       <Intro
         eyebrow="ENTERTAINMENT"
         title="Samsung Remote"
-        description="UE43U8000F · Desk · Not configured"
+        description="UE43U8000F · Desk · Secure hub power and timers"
       />
       <div className="remote-layout">
         <div>
-          <Panel title="Samsung TV">
-            <div className="tv-preview big">
-              <Tv size={64} />
-              <span>Awaiting your TV</span>
-            </div>
-            <p>No power, source, app or volume state is available.</p>
-            <Go to="Devices">View connection plan</Go>
-          </Panel>
+          <SamsungLocalConnection />
           <Panel title="Apps on the TV">
             <p>
               Shortcuts become available after the TV reports supported
@@ -152,10 +142,7 @@ export function Remote() {
         </div>
         <Panel title="Remote" className="remote-panel">
           <p className="remote-brand">SAMSUNG</p>
-          <div className="remote-top">
-            {key("Power", "power", <Power />)}
-            {key("Source", "source")}
-          </div>
+          <div className="remote-top">{key("Source", "source")}</div>
           <div className="dpad">
             {key("Up", "remote", <ArrowUp />)}
             {key("Left", "remote", <ArrowLeft />)}
@@ -173,8 +160,8 @@ export function Remote() {
             {key("Volume +", "volume")}
           </div>
           <p>
-            All controls are disabled until pairing and capability confirmation.
-            No commands have been sent.
+            These additional remote controls remain disabled until their route
+            and capabilities are verified. No commands have been sent.
           </p>
         </Panel>
       </div>

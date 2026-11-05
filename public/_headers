@@ -2,7 +2,11 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: microphone=(), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; worker-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; worker-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://192.168.1.3:*; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+
+/talin-tv-root.cer
+  Content-Type: application/x-x509-ca-cert
+  Cache-Control: no-store
 
 /sw.js
   Cache-Control: no-cache

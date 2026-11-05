@@ -1,0 +1,5 @@
+name: Talin TV Secure LAN
+packageKey: talin-hub-https-probe-v2
+permissions:
+  lan: {}
+  discovery: {}

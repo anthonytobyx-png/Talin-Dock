@@ -11,3 +11,4 @@ test-results/
 .dev.vars.*
 !.dev.vars.example
 wrangler.production.jsonc
+integrations/**/src/local_config.lua
