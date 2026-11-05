@@ -4,6 +4,8 @@ components:
     capabilities:
       - id: contactSensor
         version: 1
+      - id: talentlaugh16714.talinHubDiagnostic
+        version: 1
       - id: refresh
         version: 1
     categories:

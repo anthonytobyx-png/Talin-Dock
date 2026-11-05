@@ -2,7 +2,7 @@
 local passed = 0
 package.loaded["roots"] = "public-root-fixture"
 for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-certificate-api", "missing-hostname-api", "wrong-hostname", "http-error"}) do
-  local emitted, sent
+  local emitted, sent, finalStage
   local conn = {}
   function conn:settimeout() end
   function conn:connect() if scenario == "tcp-failure" then return nil end return 1 end
@@ -27,13 +27,17 @@ for _, scenario in ipairs({"success", "tcp-failure", "chain-failure", "missing-c
   package.loaded["st.capabilities"] = { contactSensor = { contact = {
     closed = function() return "closed" end, open = function() return "open" end,
   } }, refresh = { ID = "refresh", commands = { refresh = { NAME = "refresh" } } } }
+  package.loaded["st.capabilities"]["talentlaugh16714.talinHubDiagnostic"] = { stage = function(value) return { stage = value } end }
   package.loaded["st.driver"] = function(_, config)
     local driver = { call_with_delay = function() end, run = function(self) config.lifecycle_handlers.init(self, {
-      emit_event = function(_, value) emitted = value end,
+      try_update_metadata = function() end,
+      supports_capability = function() return true end,
+      emit_event = function(_, value) if type(value) == "table" then finalStage = value.stage else emitted = value end end,
     }) end }
     return driver
   end
   dofile("integrations/smartthings-probe/src/init.lua")
+  assert((finalStage == "verified") == (scenario == "success"), scenario .. " diagnostic stage")
   assert(emitted == (scenario == "success" and "closed" or "open"), scenario)
   if scenario ~= "success" and scenario ~= "http-error" then assert(sent == nil, scenario .. " sent data before verified TLS") end
   if sent then assert(sent == "GET /api/session HTTP/1.1\r\nHost: talin-dock.pages.dev\r\nConnection: close\r\n\r\n") end

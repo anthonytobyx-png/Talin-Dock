@@ -1,4 +1,5 @@
 name: Talin Hub HTTPS Probe
-packageKey: talin-hub-https-probe
+packageKey: talin-hub-https-probe-v2
 permissions:
   lan: {}
+  discovery: {}

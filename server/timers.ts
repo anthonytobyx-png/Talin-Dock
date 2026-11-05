@@ -46,6 +46,17 @@ export async function runnerReady(
 export async function runTimers(env: Env, now = Date.now()) {
   const db = env.DB;
   if (!db) return;
+  // Retain rate-limit metadata briefly, but discard expired QR credentials.
+  await db.batch([
+    db
+      .prepare(
+        "UPDATE tuya_pairings SET encrypted = '' WHERE expires_at < ? AND encrypted <> ''",
+      )
+      .bind(now),
+    db
+      .prepare("DELETE FROM tuya_pairings WHERE created_at < ?")
+      .bind(now - 86400000),
+  ]);
   const actions = readAlexaActions(env.TALIN_ALEXA_TRIGGERS);
   const directTuya =
     !!env.TALIN_TUYA_KEY &&

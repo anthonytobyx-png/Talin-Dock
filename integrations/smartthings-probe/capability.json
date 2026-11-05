@@ -1,0 +1,16 @@
+{
+  "name": "Talin Hub Diagnostic",
+  "version": 1,
+  "status": "proposed",
+  "attributes": {
+    "stage": {
+      "schema": {
+        "type": "object",
+        "properties": { "value": { "type": "string", "maxLength": 48 } },
+        "additionalProperties": false,
+        "required": ["value"]
+      }
+    }
+  },
+  "commands": {}
+}

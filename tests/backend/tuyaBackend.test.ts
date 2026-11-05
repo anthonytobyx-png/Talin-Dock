@@ -12,7 +12,7 @@ import { seal, unseal } from "../../server/tuya/storage";
 import { snapshot, loginRequest } from "../../server/tuya/service";
 import { handleApi } from "../../server/api";
 import { sha256 } from "../../server/auth";
-import { timerConfiguration } from "../../server/timers";
+import { timerConfiguration, runTimers } from "../../server/timers";
 const key = "f".repeat(64),
   session = "a".repeat(64),
   now = 1793839632000;
@@ -339,4 +339,51 @@ it("rejects provider redirects without forwarding QR codes or signed credentials
   expect(upstream).toHaveBeenCalledTimes(2);
   for (const [, options] of upstream.mock.calls)
     expect(options.redirect).toBe("manual");
+});
+
+it("clears expired QR credentials without resetting connection-attempt rate limits", async () => {
+  const { sql, db } = database();
+  const insert = sql.prepare("INSERT INTO tuya_pairings VALUES(?,?,?,?,?,0)");
+  insert.run(
+    "expired",
+    "owner-fixture",
+    "encrypted-expired-fixture",
+    now - 300000,
+    now - 60000,
+  );
+  insert.run(
+    "active",
+    "owner-fixture",
+    "encrypted-active-fixture",
+    now - 1000,
+    now + 239000,
+  );
+  insert.run(
+    "old",
+    "owner-fixture",
+    "encrypted-old-fixture",
+    now - 90000000,
+    now - 89900000,
+  );
+  await runTimers({ DB: db }, now);
+  expect(
+    sql
+      .prepare("SELECT encrypted FROM tuya_pairings WHERE id = 'expired'")
+      .get()?.encrypted,
+  ).toBe("");
+  expect(
+    sql.prepare("SELECT encrypted FROM tuya_pairings WHERE id = 'active'").get()
+      ?.encrypted,
+  ).toBe("encrypted-active-fixture");
+  expect(
+    sql
+      .prepare("SELECT COUNT(*) AS n FROM tuya_pairings WHERE created_at > ?")
+      .get(now - 900000)?.n,
+  ).toBe(2);
+  expect(
+    sql
+      .prepare("SELECT COUNT(*) AS n FROM tuya_pairings WHERE id = 'old'")
+      .get()?.n,
+  ).toBe(0);
+  sql.close();
 });
