@@ -1,3 +1,6 @@
 # Local development only. Run npm run auth:hash in a trusted terminal.
 # Set the resulting verifier below; never set a plain-text password here.
 TALIN_PASSWORD_HASH=
+
+# Optional private cron dispatcher; same 64-hex secret in Pages and timer Worker.
+# TALIN_TIMER_TOKEN=

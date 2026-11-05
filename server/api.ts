@@ -1,6 +1,8 @@
 import { decode } from "../src/state/storage";
 import { readAlexaActions, triggerAlexa } from "./alexa";
 import { handleTimerApi } from "./timerApi";
+import { verifyTimerDispatch } from "./timerDispatch";
+import { runTimers } from "./timers";
 import { handleTuyaApi } from "./tuya/api";
 import {
   cookie,
@@ -16,6 +18,7 @@ export interface Env {
   TALIN_PASSWORD_HASH?: string;
   TALIN_ALEXA_TRIGGERS?: string;
   TALIN_TUYA_KEY?: string;
+  TALIN_TIMER_TOKEN?: string;
 }
 const MAX_BODY = 32 * 1024;
 function json(
@@ -94,6 +97,16 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
 }
 async function route(request: Request, env: Env): Promise<Response> {
   const path = new URL(request.url).pathname;
+  if (path === "/api/timer-runner") {
+    if (
+      request.method !== "POST" ||
+      !env.DB ||
+      !(await verifyTimerDispatch(request, env.TALIN_TIMER_TOKEN))
+    )
+      return json({ error: "Not found" }, 404);
+    await runTimers(env);
+    return json({ acknowledged: true });
+  }
   if (
     ![
       "/api/session",

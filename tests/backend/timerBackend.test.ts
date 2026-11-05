@@ -182,3 +182,42 @@ it("reserves a command before dispatch and does not repeat it on replay", async 
   expect(request).toHaveBeenCalledOnce();
   sql.close();
 });
+
+it("accepts only fresh signed scheduler requests and never household sessions alone", async () => {
+  const { timerDispatchHeaders } = await import("../../server/timerDispatch");
+  const { sql, db } = database();
+  const token = "e".repeat(64);
+  const env = {
+    DB: db,
+    TALIN_TIMER_TOKEN: token,
+    TALIN_ALEXA_TRIGGERS: secret,
+  };
+  const url = "https://talin.example/api/timer-runner";
+  for (const headers of [
+    {},
+    await timerDispatchHeaders("f".repeat(64)),
+    await timerDispatchHeaders(token, Date.now() - 120000),
+  ]) {
+    expect(
+      (await handleApi(new Request(url, { method: "POST", headers }), env))
+        .status,
+    ).toBe(404);
+  }
+  expect(sql.prepare("SELECT COUNT(*) AS n FROM timer_runner").get()?.n).toBe(
+    0,
+  );
+  const headers = await timerDispatchHeaders(token);
+  expect(
+    (await handleApi(new Request(url, { method: "GET", headers }), env)).status,
+  ).toBe(404);
+  const accepted = await handleApi(
+    new Request(url, { method: "POST", headers }),
+    env,
+  );
+  expect(accepted.status).toBe(200);
+  expect(accepted.headers.get("Cache-Control")).toBe("no-store");
+  expect(sql.prepare("SELECT COUNT(*) AS n FROM timer_runner").get()?.n).toBe(
+    1,
+  );
+  sql.close();
+});

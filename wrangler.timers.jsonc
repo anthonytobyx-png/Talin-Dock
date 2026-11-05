@@ -8,12 +8,4 @@
   "preview_urls": false,
   "observability": { "enabled": false },
   "triggers": { "crons": ["* * * * *"] },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "talin-dock",
-      "database_id": "a8e61d46-75fc-45e4-9282-a7f713dc4721",
-      "migrations_dir": "migrations",
-    },
-  ],
 }
