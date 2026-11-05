@@ -115,3 +115,15 @@ Migration 0004_tuya.sql adds encrypted connection/pairing storage and idempotent
 The permanent authorisation takes place inside authenticated Talin, not in the temporary PC diagnostic. Pending QR state is encrypted, belongs to the current household session, and expires after four minutes. Connection attempts are bounded. Only the uniquely discovered cs/DEV_19 device is selected. Server token refresh is leased and encrypted; device requests use a fixed endpoint allowlist. Neither setup nor runtime creates a developer cloud project, API subscription or trial. The public Home Assistant compatibility registration may change or require reauthorisation; do not claim a vendor-supported permanent Talin API.
 
 The separate timer Worker needs the identical encrypted TALIN_TUYA_KEY along with the existing DB binding and once-per-minute Cron. Its heartbeat hash now includes direct Tuya configuration. No workers.dev endpoint or request observability is needed. Production provisioning and device tests remain prerequisites before cloud timers are enabled. The prototype TV hub route is separate and has not been deployed.
+
+## Hosted Smart Life QR fix � 2026-11-05
+
+The first hosted QR attempts failed before contacting Tuya: Cloudflare Workers rejects fetch's `redirect: "error"` option. The initial encrypted pairing reservations were saved, but no QR token or permanent connection was stored. Provider requests now use `redirect: "manual"` and reject every non-2xx response, so credentials cannot follow redirects. The same incompatible option was corrected in signed Tuya requests and the optional Alexa transport.
+
+A real local Workers-runtime smoke request with an intentionally invalid, non-household User Code reproduced the old TypeError. After the fix it reached Tuya and received HTTP 200 / USERCODE_INCORRECT. A backend regression covers rejected QR/signed-request redirects without forwarding credentials. This transport check is not an account connection or a successful device command. Hosted QR approval and physical command verification remain required.
+
+## Hosted Smart Life QR fix — 2026-11-05
+
+The first hosted QR attempts failed before contacting Tuya: Cloudflare Workers rejects fetch's `redirect: "error"` option. The initial encrypted pairing reservations were saved, but no QR token or permanent connection was stored. Provider requests now use `redirect: "manual"` and reject every non-2xx response, so credentials cannot follow redirects. The same incompatible option was corrected in signed Tuya requests and the optional Alexa transport.
+
+A real local Workers-runtime smoke request with an intentionally invalid, non-household User Code reproduced the old TypeError. After the fix it reached Tuya and received HTTP 200 / USERCODE_INCORRECT. A backend regression covers rejected QR/signed-request redirects without forwarding credentials. This transport check is not an account connection or a successful device command. Hosted QR approval and physical command verification remain required.

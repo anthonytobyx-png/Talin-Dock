@@ -53,7 +53,7 @@ it("accepts only a matching explicit acknowledgement and uses a fixed HTTPS dest
   const [url, options] = request.mock.calls[0];
   expect(url.origin).toBe("https://www.virtualsmarthome.xyz");
   expect(url.pathname).toBe("/url_routine_trigger/activate.php");
-  expect(options.redirect).toBe("error");
+  expect(options.redirect).toBe("manual");
 });
 it("fails closed on provider errors without retries or propagating credential errors", async () => {
   const request = vi.fn().mockRejectedValue(new Error("test-only private URL"));

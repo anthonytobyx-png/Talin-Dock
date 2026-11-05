@@ -275,7 +275,9 @@ export async function loginRequest(
     const response = await fetch(url, {
       method,
       signal: controller.signal,
-      redirect: "error",
+      // Workers supports manual redirects; reject non-2xx before reading data.
+      // Never forward credentials to a provider-supplied redirect destination.
+      redirect: "manual",
       cache: "no-store",
     });
     if (!response.ok) throw new Error("Tuya sign-in unavailable");

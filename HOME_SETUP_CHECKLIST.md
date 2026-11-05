@@ -74,3 +74,9 @@ Use Devices -> Smart Life connection in the hosted app once the new code is depl
 Only DEV_19's discovered Boolean switch, indoor humidity and cancel/2h countdown are implemented. Validate actual on/off and state updates against the appliance. Test/cancel the native countdown while powered on before relying on its behaviour. Humidity's device sample time is unavailable; compare with Smart Life/display and retain that label instead of treating device metadata time or HTTP retrieval time as a sensor timestamp.
 
 The TV's hub is now registered and advertises Edge/local API/virtual-device support. Further work must establish an authenticated, free route from hosted Talin through that hub, confirm the hub remains operational with the screen off, and test physical results. Do not install unauthenticated HTTP control drivers or presume the advertised local API is directly callable from Safari.
+
+## Hosted Smart Life QR fix — 2026-11-05
+
+The first hosted QR attempts failed before contacting Tuya: Cloudflare Workers rejects fetch's `redirect: "error"` option. The initial encrypted pairing reservations were saved, but no QR token or permanent connection was stored. Provider requests now use `redirect: "manual"` and reject every non-2xx response, so credentials cannot follow redirects. The same incompatible option was corrected in signed Tuya requests and the optional Alexa transport.
+
+A real local Workers-runtime smoke request with an intentionally invalid, non-household User Code reproduced the old TypeError. After the fix it reached Tuya and received HTTP 200 / USERCODE_INCORRECT. A backend regression covers rejected QR/signed-request redirects without forwarding credentials. This transport check is not an account connection or a successful device command. Hosted QR approval and physical command verification remain required.

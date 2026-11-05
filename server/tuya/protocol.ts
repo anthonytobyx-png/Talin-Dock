@@ -184,7 +184,9 @@ export async function signedRequest(
       headers: { ...headers, "Content-Type": "application/json" },
       body: encBody ? JSON.stringify({ encdata: encBody }) : undefined,
       signal: controller.signal,
-      redirect: "error",
+      // Workers supports manual redirects; reject non-2xx before reading data.
+      // Never forward credentials to a provider-supplied redirect destination.
+      redirect: "manual",
       cache: "no-store",
     });
     if (!response.ok) throw new Error("Tuya request unavailable");

@@ -9,7 +9,7 @@ import {
   type TuyaCredentials,
 } from "../../server/tuya/protocol";
 import { seal, unseal } from "../../server/tuya/storage";
-import { snapshot } from "../../server/tuya/service";
+import { snapshot, loginRequest } from "../../server/tuya/service";
 import { handleApi } from "../../server/api";
 import { sha256 } from "../../server/auth";
 import { timerConfiguration } from "../../server/timers";
@@ -306,4 +306,37 @@ it("does not replay a device command when its provider acknowledgement is lost",
   );
   expect(provider.commands).toBe(1);
   sql.close();
+});
+
+it("rejects provider redirects without forwarding QR codes or signed credentials", async () => {
+  const upstream = vi.fn().mockResolvedValue(
+    new Response(null, {
+      status: 302,
+      headers: { Location: "https://untrusted.example/" },
+    }),
+  );
+  vi.stubGlobal("fetch", upstream);
+  await expect(
+    loginRequest(
+      "/v1.0/m/life/home-assistant/qrcode/tokens",
+      {
+        usercode: "user-code-fixture",
+        schema: "haauthorize",
+      },
+      "POST",
+    ),
+  ).rejects.toThrow("Tuya sign-in unavailable");
+  await expect(
+    signedRequest(
+      credentials,
+      "GET",
+      "/v1.0/m/life/users/homes",
+      undefined,
+      undefined,
+      upstream,
+    ),
+  ).rejects.toThrow("Tuya request unavailable");
+  expect(upstream).toHaveBeenCalledTimes(2);
+  for (const [, options] of upstream.mock.calls)
+    expect(options.redirect).toBe("manual");
 });

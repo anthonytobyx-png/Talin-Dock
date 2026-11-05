@@ -148,3 +148,15 @@ The additive Tuya migration was applied in the existing production D1 console. T
 The TV hub is now registered in the owner's SmartThings account, firmware 000.062.00014. Its dashboard reports Edge drivers, the local hub API and local virtual devices Available, with memory/driver limits Ok. This is verified hub capability, not yet an authenticated Talin route or proof of operation with the TV screen off. No hub/device was reset or removed and no paid API plan was selected.
 
 Implementation validation before publication: typecheck, lint, production build, 37 unit/backend tests, 12 browser tests and five local Pages/D1 tests passed. Runtime dependency audit reported zero vulnerabilities. The separate timer Worker bundle dry run also passed. These checks validate protocol fixtures, encrypted storage, session-bound pairing and UI behaviour; physical hosted device operation remains pending the final QR connection and device tests.
+
+## Hosted Smart Life QR fix � 2026-11-05
+
+The first hosted QR attempts failed before contacting Tuya: Cloudflare Workers rejects fetch's `redirect: "error"` option. The initial encrypted pairing reservations were saved, but no QR token or permanent connection was stored. Provider requests now use `redirect: "manual"` and reject every non-2xx response, so credentials cannot follow redirects. The same incompatible option was corrected in signed Tuya requests and the optional Alexa transport.
+
+A real local Workers-runtime smoke request with an intentionally invalid, non-household User Code reproduced the old TypeError. After the fix it reached Tuya and received HTTP 200 / USERCODE_INCORRECT. A backend regression covers rejected QR/signed-request redirects without forwarding credentials. This transport check is not an account connection or a successful device command. Hosted QR approval and physical command verification remain required.
+
+## Hosted Smart Life QR fix — 2026-11-05
+
+The first hosted QR attempts failed before contacting Tuya: Cloudflare Workers rejects fetch's `redirect: "error"` option. The initial encrypted pairing reservations were saved, but no QR token or permanent connection was stored. Provider requests now use `redirect: "manual"` and reject every non-2xx response, so credentials cannot follow redirects. The same incompatible option was corrected in signed Tuya requests and the optional Alexa transport.
+
+A real local Workers-runtime smoke request with an intentionally invalid, non-household User Code reproduced the old TypeError. After the fix it reached Tuya and received HTTP 200 / USERCODE_INCORRECT. A backend regression covers rejected QR/signed-request redirects without forwarding credentials. This transport check is not an account connection or a successful device command. Hosted QR approval and physical command verification remain required.
