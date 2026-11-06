@@ -1,5 +1,9 @@
 # Home setup checklist
 
+## USB second monitor verified — 6 November 2026
+
+The iPad now works as a free spacedesk USB extended Windows display with touchscreen input, confirmed by the owner. Windows reports the original 1920 x 1080 screen still primary and the additional 2048 x 1536 screen to its right. USB has one active connection, network displays zero, and inbound network access to the display service is blocked. Audio settings and household data were preserved. No restart or paid option was needed. This screen-streaming mode requires the PC on; standalone Safari Home remains independent. Talin's control API still uses its authenticated cloud route. Layout changes are deferred. See [the setup and acceptance record](companion/SECOND_MONITOR.md), including the untested reboot/reconnect checks and free-driver update requirement.
+
 ## Faster computer command delivery — 6 November 2026
 
 - The standalone Talin app remains the selected experience. A USB cable is optional research, not an implemented transport. No spacedesk service, USB filter driver, desktop streaming, new LAN listener or paid service was installed for this change.
