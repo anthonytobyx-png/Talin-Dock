@@ -37,4 +37,8 @@ Install-SecondUser.ps1 is the reviewed administrator-only installer for a suppli
 
 Prepare-bootstrap output must be in a private directory. Machine DPAPI alone is not a per-user security boundary: filesystem ACLs protect this transient material. The runtime checks the exact target SID before re-sealing the credential under CurrentUser DPAPI; successful import consumes its bootstrap. Original private staging material should be removed after the installer confirms the copied ciphertext hash. No bootstrap, private token or DPAPI file belongs in Git or public downloads.
 
-The actual Barbara startup-folder installation still requires Windows administrator consent. Her first normal sign-in is needed to run and verify her native audio session; it is not another widget/password setup. Do not claim activation until the authenticated production report arrives.
+The Barbara administrator installation completed successfully. Copied runtime and enrollment ciphertext hashes were verified; the code is administrator-owned and not writable by ordinary users. Her startup shortcut is installed. The redundant private staging bootstrap was removed after its protected copy was proven. Her first normal sign-in is still needed to initialize and verify her native audio session; it is not another widget/password setup. Do not claim activation until the authenticated production report arrives.
+
+## Wired transport research
+
+See [the wired iPad transport assessment](WIRED_TRANSPORT.md) for verified upstream options and their limits. No USB or faster local route is implemented yet; a display-streaming app does not automatically make the cloud companion local.
