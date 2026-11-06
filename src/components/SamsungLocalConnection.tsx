@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSamsung } from "../data/SamsungContext";
 import { Panel } from "./primitives";
 import {
@@ -19,6 +19,13 @@ export function SamsungLocalConnection() {
     [minutes, setMinutes] = useState("30"),
     [action, setAction] = useState("off");
   const seconds = Number(minutes) * 60;
+  const { refresh } = hub;
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!document.hidden) void refresh();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [refresh]);
   const remoteEnabled =
     hub.ready && !hub.busy && hub.snapshot?.reportedPower === "on";
   function remote(action: TvRemoteAction, label: string, icon?: ReactNode) {

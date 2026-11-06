@@ -308,13 +308,13 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
   page,
   context,
 }) => {
+  await page.clock.install();
   const commands: unknown[] = [];
   let reportedPower = "off";
   await page.route("https://192.168.1.3:*/**", async (route) => {
     if (route.request().method() === "POST") {
       const command = route.request().postDataJSON();
       commands.push(command);
-      if (command.action === "on") reportedPower = "on";
       await route.fulfill({ json: { accepted: true, deviceConfirmed: false } });
     } else
       await route.fulfill({
@@ -363,6 +363,14 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
   await expect(panel).toContainText("Measurement time unavailable");
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ action: "on" });
+  await expect(
+    panel.getByRole("button", { name: "TV up", exact: true }),
+  ).toBeDisabled();
+  reportedPower = "on";
+  await page.clock.runFor(3001);
+  await expect(
+    panel.getByRole("button", { name: "TV up", exact: true }),
+  ).toBeEnabled();
   await panel.getByRole("button", { name: "TV up", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText(
     "not confirmation of the on-screen result",
@@ -377,7 +385,12 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
     .getByRole("button", { name: "TV up", exact: true })
     .boundingBox();
   expect(remoteKey!.height).toBeGreaterThanOrEqual(44);
-  await page.screenshot({ path: "test-results/tv-controller.png" });
+  await page.screenshot({
+    path: "test-results/tv-controller.png",
+    clip: (await panel
+      .getByRole("region", { name: "TV remote controller" })
+      .boundingBox())!,
+  });
   await panel.getByText("TV timer", { exact: true }).click();
   await expect(
     panel.getByRole("button", { name: "Add TV timer", exact: true }),

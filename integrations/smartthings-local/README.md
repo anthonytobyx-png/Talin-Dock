@@ -8,7 +8,7 @@ Mutual TLS with the household CA accepted the matching identity and rejected mis
 
 The owner completed iPad identity/root enrollment and physically confirmed on/off. On 6 November, eleven remote actions were also physically confirmed through the authenticated hub route: Up, Down, Left, Right, OK, Back, Home, volume up/down and mute/unmute. OK was tested on the identified Discover tab. The TV was returned to its starting Off state. SmartThings' audio-volume report remained unchanged during successful physical tests, so the remote exposes relative commands and separate mute/unmute buttons, without inventing a current volume or mute state. Source selection reports no available inputs and stays absent.
 
-The same controller is available in Remote and the Samsung device dialog. Only the authenticated hub's allowlisted remote catalog is displayed; remote keys require reported power On and a reachable hub. Hub acceptance is not appliance execution. The UI labels the last SmartThings report, its receipt time and the absence of an underlying TV sample timestamp. It never invents source/app identifiers or online TV status.
+The same controller is available in Remote and the Samsung device dialog. While that panel is visible it reads authenticated hub status every three seconds, so delayed power reports update key availability without replaying the power command. Only the authenticated hub's allowlisted remote catalog is displayed; remote keys require reported power On and a reachable hub. Hub acceptance is not appliance execution. The UI labels the last SmartThings report, its receipt time and the absence of an underlying TV sample timestamp. It never invents source/app identifiers or online TV status.
 
 ## Security and deployment
 
