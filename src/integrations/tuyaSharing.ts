@@ -31,7 +31,7 @@ const unavailable = () => ({
   ok: false as const,
   error: {
     code: "NOT_CONFIGURED" as const,
-    message: "Use the Smart Life connection in Devices.",
+    message: "Manage the Smart Life connection in Settings.",
   },
 });
 export const tuyaSharing: TimerAdapter = {

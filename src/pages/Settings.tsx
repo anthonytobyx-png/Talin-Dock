@@ -6,6 +6,9 @@ import { CloudSettings } from "../components/CloudSettings";
 import { BackupSettings } from "../components/BackupSettings";
 import { HouseholdConnections } from "../components/HouseholdConnections";
 import { WeatherSettings } from "../components/WeatherSettings";
+import { DashboardSettings } from "../components/DashboardSettings";
+import { CalendarConnections } from "../components/CalendarConnections";
+import { media } from "../data/media";
 export function Settings() {
   const { state, dispatch } = useStore();
   const profile = state.profiles[state.activeProfile];
@@ -18,6 +21,7 @@ export function Settings() {
       </div>
       <div className="two-columns">
         <div>
+          <DashboardSettings />
           <Panel title={`Personal · ${profile.name}`}>
             <p>Applies only to the active profile.</p>
             {state.activeProfile !== "household" && (
@@ -108,6 +112,7 @@ export function Settings() {
                 <input
                   type="checkbox"
                   checked={profile.favourites.includes(device.id)}
+                  aria-label={`Favourite ${device.name}`}
                   onChange={() =>
                     dispatch({
                       type: "preferences",
@@ -156,6 +161,27 @@ export function Settings() {
           <WeatherSettings />
           <CloudSettings />
           <HouseholdConnections />
+          <CalendarConnections />
+          <Panel title="Media apps">
+            <p>
+              Optional iPad apps. App Store compatibility is managed by each
+              provider.
+            </p>
+            {media.map((app) => (
+              <p key={app.name}>
+                <a href={app.store} target="_blank" rel="noreferrer">
+                  {app.name} in the App Store ↗
+                </a>
+              </p>
+            ))}
+          </Panel>
+          <Panel title="Second display">
+            <p>
+              The home PC uses the free personal-use spacedesk USB driver and
+              iPad Viewer. Windows manages screen arrangement, orientation and
+              touch mapping. Talin cannot detect its current connection.
+            </p>
+          </Panel>
           <BackupSettings />
           <Panel title="Integrations">
             <span className="badge">Not configured</span>

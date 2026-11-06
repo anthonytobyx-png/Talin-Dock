@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { canControl, type Device } from "../devices/model";
 import { sendCommand } from "../integrations/contracts";
 import {
@@ -24,6 +24,18 @@ export function DeviceControls({
   const powerReady =
     !!adapter && device.adapterId === adapter.id && canControl(device, "power");
   const timerReady = !!adapter && canUsePowerTimers(device, adapter);
+  useEffect(() => {
+    let current = true;
+    if (!timerReady || !adapter || busy) return;
+    void readPowerTimers(adapter, device).then((result) => {
+      if (!current) return;
+      if (result.ok) setTimers(result.value);
+      else setMessage(result.error.message);
+    });
+    return () => {
+      current = false;
+    };
+  }, [adapter, device, timerReady, busy]);
   const seconds = Number(minutes) * 60;
   const durationReady =
     timerReady &&
@@ -78,9 +90,7 @@ export function DeviceControls({
           </button>
         ))}
       </div>
-      {!powerReady && (
-        <p>Connect this device and verify power control to enable on/off.</p>
-      )}
+      {!powerReady && <p>Power control unavailable.</p>}
       <label className="field">
         Timer action
         <select
@@ -139,9 +149,9 @@ export function DeviceControls({
       <p>
         {timerReady
           ? device.powerTimer!.executor === "device"
-            ? "Timers run on the device; Talin can be closed. The device must remain powered and available."
-            : "Timers run through the online service; Talin can be closed. Internet access is required for delivery."
-          : "Timers need a verified device timer or an authenticated online scheduling service. Keeping this page open is not a reliable timer."}
+            ? "Runs on the device with Talin closed."
+            : "Runs with Talin closed. Internet is required."
+          : "Timers unavailable."}
       </p>
       {timers.map((timer) => (
         <div key={timer.id} className="layout-row">

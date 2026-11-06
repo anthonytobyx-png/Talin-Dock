@@ -146,7 +146,15 @@ test("offline shell reloads, keeps local settings, and never caches APIs", async
   );
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await page.reload();
-  await page.getByRole("button", { name: "Bedroom", exact: true }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page.getByLabel("Dehumidifier", { exact: true }).check();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
   await context.setOffline(true);
   await page.reload();
   await expect(
@@ -157,9 +165,12 @@ test("offline shell reloads, keeps local settings, and never caches APIs", async
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Bedroom", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  ).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Dehumidifier", exact: true }),
+    page.getByRole("button", {
+      name: "Open Dehumidifier controls",
+      exact: true,
+    }),
   ).toBeVisible();
   const cached = await page.evaluate(async () => {
     const result: string[] = [];

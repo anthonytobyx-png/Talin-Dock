@@ -1,5 +1,7 @@
 export const rooms = ["Desk", "Kitchen", "Bedroom"] as const;
 export type Room = (typeof rooms)[number];
+// One visible Home layout. Preserve legacy keys for backups/cloud compatibility.
+export const homeLayoutRoom: Room = "Desk";
 export const sections = [
   "Home",
   "Devices",

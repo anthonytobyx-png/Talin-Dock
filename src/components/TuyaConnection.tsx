@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTuya, tuyaRequest } from "../data/TuyaContext";
-import { commandId } from "../integrations/commandId";
+
 export function TuyaConnection({ showSetup = true }: { showSetup?: boolean }) {
   const connection = useTuya();
   const [code, setCode] = useState(""),
@@ -62,27 +62,6 @@ export function TuyaConnection({ showSetup = true }: { showSetup?: boolean }) {
           : "Connection not confirmed. Refresh before retrying.",
       );
       await connection.refresh();
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function countdown(action: "2h" | "cancel") {
-    setBusy(true);
-    try {
-      const result = await tuyaRequest<{ acknowledged: boolean }>("/action", {
-        action,
-        requestId: commandId(),
-      });
-      setMessage(
-        result.acknowledged
-          ? "Device countdown request acknowledged. Refresh and check the appliance’s timer display."
-          : "Countdown outcome unknown. Check the appliance before retrying.",
-      );
-      await connection.refresh();
-    } catch {
-      setMessage(
-        "Countdown outcome unknown. Refresh and check the appliance before retrying.",
-      );
     } finally {
       setBusy(false);
     }
@@ -176,37 +155,6 @@ export function TuyaConnection({ showSetup = true }: { showSetup?: boolean }) {
             {state.power === null ? "Unknown" : state.power ? "On" : "Off"}.
             Retrieved {new Date(state.observedAt).toLocaleString()}.
           </p>
-          {state.countdownOptions.includes("2h") && (
-            <>
-              <p>
-                This appliance advertises a native 2-hour countdown. Its
-                remaining time is{" "}
-                {state.countdownLeft === null
-                  ? "unavailable"
-                  : `${state.countdownLeft} minutes`}
-                . Confirm the timer display after setting it.
-              </p>
-              <div className="button-row">
-                <button
-                  disabled={
-                    busy ||
-                    !!connection.error ||
-                    !state.online ||
-                    state.power !== true
-                  }
-                  onClick={() => countdown("2h")}
-                >
-                  Set device 2-hour countdown
-                </button>
-                <button
-                  disabled={busy || !!connection.error || !state.online}
-                  onClick={() => countdown("cancel")}
-                >
-                  Cancel device countdown
-                </button>
-              </div>
-            </>
-          )}
         </>
       )}
       {message && <p role="status">{message}</p>}

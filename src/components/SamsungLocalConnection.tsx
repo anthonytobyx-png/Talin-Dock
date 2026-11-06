@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSamsung } from "../data/SamsungContext";
-import { Panel, Go } from "./primitives";
+import { Panel } from "./primitives";
 export function SamsungLocalConnection() {
   const hub = useSamsung(),
     [message, setMessage] = useState(""),
@@ -15,24 +15,19 @@ export function SamsungLocalConnection() {
     setMessage(
       (await hub.perform(path, data))
         ? success
-        : "No result confirmed. Check the connection message before retrying.",
+        : "No result confirmed. Refresh TV status before retrying.",
     );
   }
   return (
     <section aria-label="Samsung TV power and timers">
-      <Panel title="Samsung TV · SmartThings local connection">
+      <Panel title="TV controls">
         <p>
-          {hub.ready ? "Secure TV hub reachable" : "TV hub connection required"}{" "}
-          · UE43U8000F
-        </p>
-        <p>
-          SmartThings reported power:{" "}
+          Reported power:{" "}
           <strong>{hub.snapshot?.reportedPower || "Unknown"}</strong>
           {hub.snapshot?.reportedAt
             ? ` · received ${new Date(hub.snapshot.reportedAt * 1000).toLocaleString()}`
             : ""}
-          . The underlying TV sample time is unavailable; this is not
-          independent physical confirmation.
+          . Measurement time unavailable.
         </p>
         <div className="button-row">
           {["on", "off"].map((power) => (
@@ -56,7 +51,7 @@ export function SamsungLocalConnection() {
               void send(
                 "/v1/power",
                 { action: "status" },
-                "SmartThings status requested. Refresh after a moment to read its response.",
+                "TV status requested. Refresh after a moment to read its response.",
               )
             }
           >
@@ -64,11 +59,7 @@ export function SamsungLocalConnection() {
           </button>
         </div>
         <h3>TV timer</h3>
-        <p>
-          Runs on the TV hub with Talin closed and the PC off. Native
-          SmartThings rules still need internet. A hub restart can change its
-          connection port; abrupt power loss can lose recently saved timers.
-        </p>
+        <p>Runs with Talin closed. Internet and the TV hub are required.</p>
         <label className="field">
           TV timer action
           <select
@@ -135,15 +126,16 @@ export function SamsungLocalConnection() {
           ))}
         </ul>
         <p role="status">{message}</p>
-        {hub.error && <p role="alert">{hub.error}</p>}
-        <Go to="Settings">Household connection settings</Go>
+        {!hub.ready && (
+          <p role="alert">
+            {navigator.onLine
+              ? "TV unavailable. Check Settings if the connection needs attention."
+              : "Offline. Previous reports are stale; controls are unavailable."}
+          </p>
+        )}
         <button disabled={hub.busy} onClick={() => void hub.refresh()}>
-          Refresh TV hub status
+          Refresh TV status
         </button>
-        <p>
-          Only power and timers are configured. Volume, inputs and app launching
-          remain unavailable.
-        </p>
       </Panel>
     </section>
   );

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComputerSnapshot } from "../computers/model";
 import { cloudRequest } from "../data/cloud";
 import { commandId } from "../integrations/commandId";
-import { Panel, Go } from "./primitives";
+import { Panel } from "./primitives";
 interface Computer {
   id: string;
   name: string;
@@ -233,17 +233,7 @@ export function ComputerPanel() {
             loading ? "Checking household computers" : "No paired computer"
           }
         >
-          <p>
-            The free Windows companion shares measured CPU, memory, supported
-            NVIDIA metrics and Windows audio controls through your existing
-            household sign-in. No extra iPad certificate is needed for this
-            route.
-          </p>
-          <Go to="Settings">Household connections</Go>
-          <p>
-            macOS and USB transport are not implemented. This connection needs
-            internet; it is not a LAN or USB link.
-          </p>
+          <p>Your paired computers appear here when available.</p>
         </Panel>
       ) : (
         <>

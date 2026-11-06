@@ -74,8 +74,9 @@ export function CloudSettings() {
         </span>
       </div>
       <p>
-        Sync non-sensitive profiles and room layouts between your devices. This
-        shared household sign-in is separate from display profiles.
+        Sync non-sensitive profiles and the dashboard layout between your
+        devices. This shared household sign-in is separate from display
+        profiles.
       </p>
       <p role="status">{message}</p>
       {session?.configured && !session.authenticated && (

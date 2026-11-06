@@ -1,83 +1,69 @@
-import { Droplets, Tv } from "lucide-react";
-import { type Device, sensorValue } from "../devices/model";
-import { Panel, Go } from "./primitives";
+import { useCallback, useState } from "react";
+import { Droplets, Tv, Plug } from "lucide-react";
+import { isFresh, type Device } from "../devices/model";
 import { useSamsung } from "../data/SamsungContext";
-export function DeviceCard({
-  device,
-  large = false,
-}: {
-  device: Device;
-  large?: boolean;
-}) {
+import { Modal } from "./primitives";
+import { SamsungLocalConnection } from "./SamsungLocalConnection";
+import { DehumidifierControls } from "./DehumidifierControls";
+export function DeviceCard({ device }: { device: Device }) {
   const hub = useSamsung();
-  const humidity =
-    sensorValue(device, "humidity") ||
-    (device.measurementTimeUnknown &&
-    typeof device.readings.humidity === "number"
-      ? { value: device.readings.humidity, stale: true }
-      : null);
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  const status =
+    device.type === "tv"
+      ? !hub.ready
+        ? hub.snapshot
+          ? "Unavailable"
+          : "Not connected"
+        : hub.snapshot?.reportedPower === "on"
+          ? "On"
+          : hub.snapshot?.reportedPower === "off"
+            ? "Off"
+            : "Status unknown"
+      : device.status === "unconfigured"
+        ? "Not connected"
+        : device.status !== "online"
+          ? device.status === "offline"
+            ? "Offline"
+            : "Unavailable"
+          : !isFresh(device)
+            ? "Status unavailable"
+            : device.powerState === true
+              ? "On"
+              : device.powerState === false
+                ? "Off"
+                : "Online";
+  const Icon =
+    device.type === "tv"
+      ? Tv
+      : device.type === "dehumidifier"
+        ? Droplets
+        : Plug;
   return (
-    <Panel
-      title={device.name}
-      className={large ? "large" : ""}
-      action={
-        <span className="device-icon">
-          {device.type === "tv" ? <Tv size={21} /> : <Droplets size={21} />}
+    <>
+      <button
+        className="device-tile"
+        aria-label={`Open ${device.name} controls`}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
+        <span className="device-tile-icon">
+          <Icon size={32} aria-hidden="true" />
         </span>
-      }
-    >
-      <span className="eyebrow">
-        {device.room} · {device.type === "tv" ? "Entertainment" : "Climate"}
-      </span>
-      {device.type === "dehumidifier" ? (
-        <div className="humidity-gauge">
-          <div>
-            <strong>{humidity ? `${humidity.value}%` : "—"}</strong>
-            <span>Room humidity</span>
-          </div>
-        </div>
-      ) : (
-        <div className="tv-preview">
-          <Tv size={40} />
-          <span>
-            {hub.snapshot
-              ? `SmartThings reported: ${hub.snapshot.reportedPower}`
-              : "TV hub not connected"}
-          </span>
-        </div>
+        <strong>{device.name}</strong>
+        <span className="device-tile-status">{status}</span>
+      </button>
+      {open && (
+        <Modal title={device.name} close={close}>
+          {device.type === "tv" ? (
+            <SamsungLocalConnection />
+          ) : device.type === "dehumidifier" ? (
+            <DehumidifierControls device={device} />
+          ) : (
+            <p>No controls available.</p>
+          )}
+        </Modal>
       )}
-      <div className="device-footer">
-        <span className="badge">
-          {device.type === "tv"
-            ? hub.ready
-              ? "Secure hub reachable"
-              : "Hub unavailable"
-            : device.status === "unconfigured"
-              ? "Not configured"
-              : device.status}
-        </span>
-        {device.type === "tv" ? (
-          <Go to="Remote">Remote</Go>
-        ) : (
-          <Go to="Devices">Details</Go>
-        )}
-      </div>
-      {humidity?.stale && <p>Stale reading · updated {device.updatedAt}</p>}
-      {device.measurementTimeUnknown && humidity && (
-        <p>
-          Latest reported humidity · measurement time unavailable. Retrieved{" "}
-          {device.updatedAt
-            ? new Date(device.updatedAt).toLocaleString()
-            : "Unknown"}{" "}
-          from {device.dataSource}.
-        </p>
-      )}
-      {large && device.status === "unconfigured" && (
-        <p>
-          Humidity, power and timers require a verified connection and support
-          from this device. Unavailable actions stay disabled.
-        </p>
-      )}
-    </Panel>
+    </>
   );
 }

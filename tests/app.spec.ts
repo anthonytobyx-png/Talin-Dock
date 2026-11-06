@@ -34,13 +34,18 @@ for (const size of [
     await expect(
       page.getByRole("heading", { name: "Calendar", exact: true }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Bedroom", exact: true }).click();
     await expect(
-      page.getByRole("heading", { name: "Dehumidifier", exact: true }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Edit widgets" }).click();
+      page.getByRole("button", { name: "Bedroom", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("region", { name: "Scenes", exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByRole("navigation")
+      .getByRole("button", { name: "Settings", exact: true })
+      .click();
+    await page.getByLabel("Dehumidifier", { exact: true }).check();
     await page.getByLabel("Temperature", { exact: true }).uncheck();
-    await page.getByRole("button", { name: "Done", exact: true }).click();
     await page
       .getByRole("button", { name: "Switch profile: Household", exact: true })
       .click();
@@ -77,7 +82,7 @@ for (const size of [
     }
     await expect(
       page.getByRole("button", { name: "Bedroom", exact: true }),
-    ).toHaveAttribute("aria-pressed", "true");
+    ).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Temperature", exact: true }),
     ).toHaveCount(0);
@@ -112,10 +117,12 @@ test("widget order, size and backup restore survive a reload", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Edit widgets" }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
   await page.getByRole("button", { name: "Move Humidity earlier" }).click();
   await page.getByLabel("Humidity widget size").selectOption("wide");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.reload();
   const state = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("talin-dock.preferences.v1")!),
@@ -221,7 +228,10 @@ test.describe("short tablet navigation", () => {
         .getByRole("button", { name: "Home", exact: true })
         .click();
       await expect(
-        page.getByRole("button", { name: "Edit widgets", exact: true }),
+        page.getByRole("button", {
+          name: "Open Samsung TV controls",
+          exact: true,
+        }),
       ).toBeVisible();
       const target = await navigation
         .getByRole("button", { name: "Home", exact: true })
@@ -251,6 +261,16 @@ test("unconnected devices expose power and timers without enabling unverified co
     .getByRole("navigation")
     .getByRole("button", { name: "Devices", exact: true })
     .click();
+  await expect(
+    page.getByRole("button", { name: "Turn on", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("Connection", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Open Samsung TV controls" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Open Dehumidifier controls", exact: true })
+    .click();
   for (const name of ["Dehumidifier"]) {
     const controls = page.getByRole("region", {
       name: `${name} power and timers`,
@@ -265,9 +285,7 @@ test("unconnected devices expose power and timers without enabling unverified co
       controls.getByRole("button", { name: "Add timer", exact: true }),
     ).toBeDisabled();
     await expect(controls.getByLabel("Countdown (minutes)")).toBeDisabled();
-    await expect(controls).toContainText(
-      "Keeping this page open is not a reliable timer",
-    );
+    await expect(controls).toContainText("Timers unavailable");
   }
 });
 
@@ -295,15 +313,20 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
     .getByRole("navigation")
     .getByRole("button", { name: "Devices", exact: true })
     .click();
+  await expect(
+    page.getByRole("button", { name: "Open Samsung TV controls" }),
+  ).toContainText("Off");
+  await page.getByRole("button", { name: "Open Samsung TV controls" }).click();
+  expect(commands).toHaveLength(0);
   const panel = page.getByRole("region", {
     name: "Samsung TV power and timers",
   });
-  await expect(panel).toContainText("Secure TV hub reachable");
+  await expect(panel).toContainText("Reported power: off");
   await panel.getByRole("button", { name: "Turn on", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText(
     "request accepted by the hub",
   );
-  await expect(panel).toContainText("underlying TV sample time is unavailable");
+  await expect(panel).toContainText("Measurement time unavailable");
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ action: "on" });
   await context.setOffline(true);
@@ -403,6 +426,14 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
   await expect(
     section.getByRole("button", { name: "Reconnect Smart Life", exact: true }),
   ).toHaveCount(0);
+  expect(commands).toHaveLength(0);
+  await page
+    .getByRole("button", { name: "Open Dehumidifier controls", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Dehumidifier",
+    exact: true,
+  });
   await expect(
     page.getByText("Latest reported humidity · measurement time unavailable.", {
       exact: false,
@@ -412,18 +443,16 @@ test("Smart Life connects inside Talin, labels unknown sample age, and keeps cre
     name: "Dehumidifier power and timers",
   });
   await controls.getByRole("button", { name: "Turn on", exact: true }).click();
-  await expect(section).toContainText("Power reported by Smart Life: On");
+  await expect(dialog).toContainText("Reported power: On");
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ action: "on" });
   await page.context().setOffline(true);
-  await expect(section).toContainText(
-    "Offline. Previous Smart Life readings are stale",
-  );
+  await expect(dialog).toContainText("Offline. Previous readings are stale");
   await expect(
     controls.getByRole("button", { name: "Turn off", exact: true }),
   ).toBeDisabled();
   await expect(
-    section.getByRole("button", {
+    dialog.getByRole("button", {
       name: "Set device 2-hour countdown",
       exact: true,
     }),
@@ -538,4 +567,187 @@ test("Computer mode uses live reports, acknowledges bounded controls and disable
     "Fixture speakers",
   );
   await context.setOffline(false);
+});
+
+test("device dialogs preserve timer controls and reload saved timers without issuing actions on open", async ({
+  page,
+}) => {
+  const actions: Record<string, unknown>[] = [];
+  let countdownLeft = 0;
+  let timer: {
+    id: string;
+    deviceId: string;
+    action: string;
+    dueAt: string;
+    status: string;
+  } | null = null;
+  await page.route("**/api/tuya**", async (route) => {
+    if (route.request().method() === "POST") {
+      const data = route.request().postDataJSON();
+      actions.push(data);
+      countdownLeft = data.action === "2h" ? 120 : 0;
+      await route.fulfill({ json: { acknowledged: true } });
+    } else
+      await route.fulfill({
+        json: {
+          available: true,
+          connected: true,
+          timerReady: true,
+          state: {
+            online: true,
+            power: true,
+            humidity: 61,
+            observedAt: new Date().toISOString(),
+            measurementTime: null,
+            canPower: true,
+            countdownOptions: ["cancel", "2h"],
+            countdownLeft,
+            countdownSetting: countdownLeft ? "2h" : "cancel",
+          },
+        },
+      });
+  });
+  await page.route("**/api/power-timers", async (route) => {
+    if (route.request().method() === "POST") {
+      const data = route.request().postDataJSON();
+      actions.push(data);
+      timer =
+        data.operation === "create"
+          ? {
+              id: data.id,
+              deviceId: data.deviceId,
+              action: data.action,
+              dueAt: new Date(Date.now() + data.seconds * 1000).toISOString(),
+              status: "pending",
+            }
+          : null;
+    }
+    await route.fulfill({ json: { timer, timers: timer ? [timer] : [] } });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  const tile = page.getByRole("button", {
+    name: "Open Dehumidifier controls",
+    exact: true,
+  });
+  await expect(tile).toContainText("On");
+  await tile.click();
+  const dialog = page.getByRole("dialog", {
+    name: "Dehumidifier",
+    exact: true,
+  });
+  await expect(dialog).toContainText("61%");
+  expect(actions).toEqual([]);
+  await dialog
+    .getByRole("button", { name: "Set device 2-hour countdown", exact: true })
+    .click();
+  await expect(dialog).toContainText("120 minutes remaining");
+  await dialog
+    .getByRole("button", { name: "Cancel device countdown", exact: true })
+    .click();
+  await expect(dialog).toContainText("0 minutes remaining");
+  await dialog.getByRole("button", { name: "Add timer", exact: true }).click();
+  await expect(
+    dialog.getByRole("button", { name: "Cancel timer", exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tile).toBeFocused();
+  await tile.click();
+  await expect(
+    dialog.getByRole("button", { name: "Cancel timer", exact: true }),
+  ).toBeVisible();
+  expect(actions).toHaveLength(3);
+  await dialog
+    .getByRole("button", { name: "Cancel timer", exact: true })
+    .click();
+  await expect(
+    dialog.getByRole("button", { name: "Cancel timer", exact: true }),
+  ).toHaveCount(0);
+  expect(actions.map((a) => a.action || a.operation)).toEqual([
+    "2h",
+    "cancel",
+    "off",
+    "cancel",
+  ]);
+  expect(actions[2]).toMatchObject({
+    operation: "create",
+    seconds: 1800,
+    action: "off",
+  });
+});
+
+test("one Home space preserves old preferences and keeps configuration only in Settings", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const legacy = await page.evaluate(() => {
+    const key = "talin-dock.preferences.v1";
+    const value = JSON.parse(localStorage.getItem(key)!);
+    value.room = "Bedroom";
+    value.household.layouts.Bedroom = ["dehumidifier", "quick"];
+    localStorage.setItem(key, JSON.stringify(value));
+    return value;
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Bedroom", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("Good morning", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Movie time", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Edit widgets", exact: true }),
+  ).toHaveCount(0);
+  for (const section of ["Devices", "Calendars", "Display"]) {
+    await page
+      .getByRole("navigation")
+      .getByRole("button", { name: section, exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Calendar providers", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByLabel("TV hub HTTPS address", { exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Dashboard layout", exact: true }),
+    ).toHaveCount(0);
+  }
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Open Dehumidifier controls", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Dehumidifier",
+    exact: true,
+  });
+  await expect(dialog.getByRole("textbox")).toHaveCount(0);
+  await expect(
+    dialog.getByRole("button", { name: "Connect Smart Life", exact: true }),
+  ).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Calendar providers", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Dashboard layout", exact: true }),
+  ).toBeVisible();
+  await page.getByText("Advanced TV hub address", { exact: true }).click();
+  await expect(
+    page.getByLabel("TV hub HTTPS address", { exact: true }),
+  ).toBeVisible();
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("talin-dock.preferences.v1")!),
+  );
+  expect(saved.household).toEqual(legacy.household);
+  expect(saved.room).toBe("Bedroom");
 });

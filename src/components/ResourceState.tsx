@@ -5,7 +5,7 @@ import {
   type Resource,
   type CalendarEvent,
 } from "../data/resources";
-import { Go } from "./primitives";
+
 import { useWeather } from "../data/WeatherContext";
 export function ResourceState<T>({
   resource,
@@ -73,7 +73,6 @@ export function WeatherContent() {
       {resource.status === "not-configured" && (
         <span className="badge">Not configured</span>
       )}
-      <Go to="Settings">Weather settings</Go>
     </div>
   );
 }
@@ -114,10 +113,7 @@ export function CalendarContent({ week = false }: { week?: boolean }) {
       ) : (
         <CalendarDays size={32} className="muted" />
       )}
-      <ResourceState
-        resource={resource}
-        unconfigured="Your agenda belongs here. Connect a calendar provider in a future update."
-      >
+      <ResourceState resource={resource} unconfigured="No calendar connected.">
         {(events) => (
           <ul>
             {events.map((event) => (
@@ -126,7 +122,6 @@ export function CalendarContent({ week = false }: { week?: boolean }) {
           </ul>
         )}
       </ResourceState>
-      <Go to="Calendars">Calendar setup</Go>
     </div>
   );
 }

@@ -3,9 +3,11 @@ import { useSamsung } from "../data/SamsungContext";
 import { Panel } from "./primitives";
 import { TuyaConnection } from "./TuyaConnection";
 import { ComputerSettings } from "./ComputerSettings";
+import { useDevices } from "../data/TuyaContext";
 
 export function HouseholdConnections() {
   const hub = useSamsung();
+  const devices = useDevices();
   const [address, setAddress] = useState(hub.endpoint);
   const [message, setMessage] = useState("");
   return (
@@ -59,6 +61,40 @@ export function HouseholdConnections() {
           Refresh TV hub connection
         </button>
         <p role="status">{message}</p>
+      </details>
+      <details>
+        <summary>Device diagnostics</summary>
+        {devices.map((device) => (
+          <section key={device.id}>
+            <h3>{device.name}</h3>
+            <p>{device.model}</p>
+            <p>
+              {device.type === "tv"
+                ? hub.ready
+                  ? "Secure TV hub reachable"
+                  : "TV hub unavailable"
+                : device.status}
+            </p>
+            <p>
+              Capabilities:{" "}
+              {device.type === "tv"
+                ? "Power and hub timers. Volume, inputs and app launching are unavailable."
+                : device.confirmedCapabilities.join(", ") || "None verified"}
+            </p>
+            {device.updatedAt && (
+              <p>
+                Last retrieved: {new Date(device.updatedAt).toLocaleString()}
+              </p>
+            )}
+            {device.error && <p>{device.error}</p>}
+          </section>
+        ))}
+        {hub.error && <p role="alert">{hub.error}</p>}
+        <p>
+          TV sample time is unavailable. Its hub port may change after restart;
+          abrupt power loss may lose recent timers. Provider acknowledgements
+          are not physical confirmation.
+        </p>
       </details>
     </Panel>
   );

@@ -1,5 +1,13 @@
 # Selected architecture
 
+## Simple devices and Settings-only configuration — 6 November 2026
+
+- Devices is one compact grid: icon, name and actual reported status. Tapping a tile opens an accessible dialog with operational controls only. TV power and hub timers reuse the verified route; unsupported remote buttons are no longer displayed. The dehumidifier dialog shows humidity, reported power, on/off, service timers and its confirmed native countdown. Opening a dialog sends no appliance action. Saved service timers reload on reopening; availability/capability guards and acknowledgement-versus-physical-result distinctions remain.
+- Configuration lives in Settings: household/provider setup, TV address and diagnostics, computer pairing, calendar provider choices, weather location, dashboard widget selection/order/size, optional media-app installation links and display setup information. No configuration form or technical connection panel is embedded in Devices. Calendar options remain Google/iCloud/Outlook and are still unconnected.
+- There is one visible Home layout and no room selector, scene presets or Quick actions widget. The existing Desk layout key is the canonical Home layout. Other legacy room layouts, the saved selected-room value and backup/cloud schema remain intact; there is no automatic preference migration or cloud overwrite. Devices and sensor lookup are no longer filtered by room. All existing connections and household data are preserved.
+- Modal focus returns to its tile, Escape closes it, and disabled fields are excluded from the keyboard focus loop. Touch targets retain the 44-pixel minimum and input text supports Safari 15. Desktop browser checks are not physical iPad acceptance.
+- Validation: typecheck, lint and build passed, plus 46 unit/backend, 15 browser and six real local Pages/D1 tests. Fixtures verify power, native countdown and durable timer create/cancel without real household commands. Offline reload retains the single Home layout; browser tests confirm hidden legacy preferences are unchanged. No integration credentials, device identifiers or production test commands were added.
+
 ## Faster computer command delivery — 6 November 2026
 
 - The standalone Talin app remains the selected experience. A USB cable is optional research, not an implemented transport. No spacedesk service, USB filter driver, desktop streaming, new LAN listener or paid service was installed for this change.
