@@ -197,7 +197,21 @@ test("idle return switches personal profile back to Household", async ({
     .getByRole("button", { name: "Settings", exact: true })
     .click();
   await page.getByLabel("Return to Household after 10 minutes idle").check();
-  await page.clock.fastForward(601000);
+  await expect(
+    page.getByLabel("Return to Household after 10 minutes idle"),
+  ).toBeChecked();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
+  // Settle the scroll caused by reaching a setting on a long page before
+  // jumping time. A queued scroll is real activity to the idle tracker.
+  await page.clock.runFor(1000);
+  await page.clock.fastForward(590000);
+  await expect(
+    page.getByRole("button", { name: "Switch profile: Anthony", exact: true }),
+  ).toBeVisible();
+  await page.clock.fastForward(20000);
   await expect(
     page.getByRole("button", {
       name: "Switch profile: Household",
