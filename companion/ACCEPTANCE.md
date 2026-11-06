@@ -1,0 +1,11 @@
+# Windows computer acceptance — 6 November 2026
+
+Implementation deployed from 7cf0325f5c6c7a50d31126fd0ae2e51a9a824fcc on feat/cloud-app. Production remains https://talin-dock.pages.dev/.
+
+- All GitHub checks passed: app verification, Windows companion build/bootstrap tests and Cloudflare Pages deployment. Local validation passed typecheck, lint, build, 46 unit/backend tests, 13 browser tests, six real local Pages/D1 tests and four Windows bootstrap security checks. The updater also passed its read-only WhatIf review and rejected an incorrect payload hash before writing.
+- The updated real Windows companion acknowledged four unchanged audio requests against a disposable local Pages/D1 database in 315–607 ms. Master/application volume and speaker mute retained their existing values. No microphone audio, screenshots or files were captured by the companion.
+- In the signed-in production Talin UI, one unchanged master-volume request was acknowledged in 1,903 ms and subsequent reported volume retained the starting value. This is one measured request-to-acknowledgement result through the internet relay, not a typical-latency guarantee, USB benchmark, physical iPad test or proof of media playback.
+- The current user's companion and sign-in startup now use the staged command-wait build, with the original runtime retained for rollback and existing CurrentUser-DPAPI pairing preserved.
+- Windows administrator installation of the second account's shared executable/assembly update completed with exit code zero. Installed hashes match the reviewed payload; administrator ownership remains. Its separate credentials, enrollment and startup were not changed. That account still has no live report until its next normal sign-in; it is not claimed active or audio-tested.
+- The standalone iPad experience remains selected. No spacedesk service, USB filter driver, firewall opening, new LAN listener, router change or paid service was installed. This faster route still requires internet. Home remains independent of the PC.
+- The physical iPad setup/acceptance remains deferred until the end. Samsung's separate one-time iPad trust/identity step and physical Home-with-PC-off checks are not completed by this computer update. Calendar integration remains deferred.
