@@ -1,5 +1,13 @@
 # Talin Dock
 
+## Faster computer command delivery — 6 November 2026
+
+- The standalone Talin app remains the selected experience. A USB cable is optional research, not an implemented transport. No spacedesk service, USB filter driver, desktop streaming, new LAN listener or paid service was installed for this change.
+- The authenticated cloud agent now optionally waits for commands for a bounded 4.5 seconds while watched or 14 seconds idle, checking at 500 ms / 1 second respectively. New companions report execution immediately; older companions retain their existing polling protocol. Claims remain atomic, expired commands cannot be released, and revocation is checked again before releasing a response. Each wait has an explicit query-count bound and disconnect cleanup. Existing capability validation, rate limits and no automatic replay remain.
+- The UI measures elapsed request-to-companion-acknowledgement time and labels it as cloud transport. It does not present HTTP request time as device execution latency, or key submission as media playback confirmation. A late response cannot update acknowledgement text after switching computer/session or going offline.
+- Local native acceptance with a disposable Pages/D1 database measured 315–607 ms across master volume, application volume and speaker mute acknowledgements. Existing values were reapplied, the original audio state was retained, and no microphone audio was captured. These figures are local test results, not measured iPad/internet latency. The full local app checks and Windows bootstrap security checks passed.
+- Updating an installed companion preserves its per-user encrypted credentials and pairing. The reviewed shared-runtime updater only replaces hash-verified executable/assembly files, requires unchanged dependency/runtime configuration, preserves rollback copies and refuses a running shared companion. Administrator-owned code and the second account's enrollment/startup remain protected. Actual iPad acceptance and Barbara's first live report are still outstanding.
+
 ## Verified PC and second Windows account — 5 November 2026
 
 - Anthony's companion is paired in production and starts at Windows sign-in under his own account. The deployed Computer page received real CPU/memory/NVIDIA/audio reports. A production UI volume request was acknowledged with the starting 82% level retained. Home data and the existing Smart Life connection were preserved. The initial computer implementation/deployment and Windows CI passed all 65 app checks plus native audio/queue tests.

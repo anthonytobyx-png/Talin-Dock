@@ -522,6 +522,9 @@ test("Computer mode uses live reports, acknowledges bounded controls and disable
   await expect(page.getByRole("status")).toContainText(
     "Companion acknowledged",
   );
+  await expect(page.getByRole("status")).toContainText(
+    /in \d+ ms through the cloud/,
+  );
   expect(commands).toEqual([{ action: "masterVolume", value: 51 }]);
   await expect(
     page.getByRole("button", { name: "Play / pause", exact: true }),

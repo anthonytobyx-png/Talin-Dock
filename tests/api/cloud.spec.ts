@@ -261,6 +261,15 @@ test("computer pairing, bearer isolation, atomic claims, acknowledgement and rev
     },
   });
   expect(report.status()).toBe(200);
+  expect(await report.json()).toMatchObject({ pollSeconds: 15, command: null });
+  expect(
+    (
+      await request.post("/api/computers/agent", {
+        headers: auth,
+        data: { snapshot: snapshot(), waitForCommand: "forever" },
+      })
+    ).status(),
+  ).toBe(400);
   const list = await (await request.get("/api/computers")).json();
   expect(list.computers[0]).toMatchObject({ id, online: true });
   expect(JSON.stringify(list)).not.toContain("must-not-store");
@@ -325,6 +334,56 @@ test("computer pairing, bearer isolation, atomic claims, acknowledgement and rev
       })
     ).status(),
   ).toBe(403);
+  await request.post("/api/computers", {
+    headers,
+    data: { operation: "watch", computerId: id },
+  });
+  let settled = false;
+  const waiting = request
+    .post("/api/computers/agent", {
+      headers: auth,
+      data: { snapshot: snapshot(), waitForCommand: true },
+    })
+    .then((response) => {
+      settled = true;
+      return response;
+    });
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  expect(settled).toBe(false);
+  const nextId = "33333333-3333-4333-8333-333333333333",
+    sent = Date.now();
+  expect(
+    (
+      await request.post("/api/computers", {
+        headers,
+        data: {
+          operation: "command",
+          computerId: id,
+          id: nextId,
+          command: { action: "masterVolume", value: 50 },
+        },
+      })
+    ).status(),
+  ).toBe(202);
+  expect(await (await waiting).json()).toMatchObject({
+    pollAfterMs: 0,
+    command: { id: nextId, action: "masterVolume", value: 50 },
+  });
+  expect(Date.now() - sent).toBeLessThan(3000);
+  expect(
+    await (
+      await request.post("/api/computers/agent", {
+        headers: auth,
+        data: { snapshot: snapshot(), completed: { id: nextId, ok: true } },
+      })
+    ).json(),
+  ).toMatchObject({ command: null });
+  // A request authorised before revocation cannot release a later command.
+  const revokedWait = request.post("/api/computers/agent", {
+    headers: auth,
+    data: { snapshot: snapshot(), waitForCommand: true },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 200));
   expect(
     (
       await request.post("/api/computers", {
@@ -333,6 +392,7 @@ test("computer pairing, bearer isolation, atomic claims, acknowledgement and rev
       })
     ).status(),
   ).toBe(200);
+  expect((await revokedWait).status()).toBe(401);
   expect(
     (
       await request.post("/api/computers/agent", {

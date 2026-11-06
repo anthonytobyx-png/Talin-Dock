@@ -176,7 +176,12 @@ export async function handleComputerAgent(
   } catch {
     return json({ error: "Invalid report" }, 400);
   }
-  if (!record(data)) return json({ error: "Invalid report" }, 400);
+  if (
+    !record(data) ||
+    (data.waitForCommand !== undefined &&
+      typeof data.waitForCommand !== "boolean")
+  )
+    return json({ error: "Invalid report" }, 400);
   const now = Date.now(),
     snapshot = computerSnapshot(data.snapshot, now);
   if (!snapshot) return json({ error: "Invalid report" }, 400);
@@ -220,14 +225,55 @@ export async function handleComputerAgent(
       )
       .bind(pc.id, now - 7 * 86400000),
   ]);
-  const command = await db
-    .prepare(
-      "UPDATE computer_commands SET status='claimed' WHERE id=(SELECT id FROM computer_commands WHERE computer_id=? AND status='pending' AND created_at>=? AND EXISTS(SELECT 1 FROM computers WHERE id=computer_commands.computer_id AND revoked=0) ORDER BY created_at LIMIT 1) AND status='pending' RETURNING id,payload",
-    )
-    .bind(pc.id, now - 20000)
-    .first<{ id: string; payload: string }>();
+  const claim = () =>
+    db
+      .prepare(
+        "UPDATE computer_commands SET status='claimed' WHERE id=(SELECT id FROM computer_commands WHERE computer_id=? AND status='pending' AND created_at>=? AND EXISTS(SELECT 1 FROM computers WHERE id=computer_commands.computer_id AND revoked=0) ORDER BY created_at LIMIT 1) AND status='pending' RETURNING id,payload",
+      )
+      .bind(pc.id, Date.now() - 20000)
+      .first<{ id: string; payload: string }>();
+  let command = await claim();
+  const active = pc.active_until > now;
+  // Optional, bounded command waiting. Old companions retain ordinary polling.
+  // Waiting does not execute commands, consume a CPU loop or refresh a watch lease.
+  const deadline = performance.now() + (active ? 4500 : 14000);
+  let checks = 0;
+  while (
+    data.waitForCommand === true &&
+    !command &&
+    !request.signal.aborted &&
+    performance.now() < deadline &&
+    checks++ < (active ? 9 : 14)
+  ) {
+    await new Promise<void>((resolve) => {
+      const finish = () => {
+        clearTimeout(timer);
+        request.signal.removeEventListener("abort", finish);
+        resolve();
+      };
+      const timer = setTimeout(
+        finish,
+        Math.min(
+          active ? 500 : 1000,
+          Math.max(0, deadline - performance.now()),
+        ),
+      );
+      request.signal.addEventListener("abort", finish, { once: true });
+      if (request.signal.aborted) finish();
+    });
+    if (!request.signal.aborted) command = await claim();
+  }
+  // Revocation may happen while this request waits. No command is released after it.
+  if (
+    !(await db
+      .prepare("SELECT id FROM computers WHERE id=? AND revoked=0")
+      .bind(pc.id)
+      .first())
+  )
+    return json({ error: "Unauthorised companion" }, 401);
   return json({
-    pollSeconds: pc.active_until > now ? 5 : 15,
+    pollSeconds: active ? 5 : 15,
+    ...(data.waitForCommand === true ? { pollAfterMs: 0 } : {}),
     command: command
       ? { id: command.id, ...JSON.parse(command.payload) }
       : null,

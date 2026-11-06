@@ -96,21 +96,23 @@ internal static class Program
             if (state.Origin != "https://talin-dock.pages.dev" && !(args.Contains("--development") && state.Origin == "http://127.0.0.1:8790")) return 1;
             using var mutex = new Mutex(true, "Local\\TalinDock-" + state.Id, out bool created);
             if (!created) return 0;
-            using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
+            using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(25) };
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", state.Token);
             int failures = 0;
             Console.WriteLine("Talin companion started. Outbound HTTPS only; no listening network ports.");
             while (true)
             {
-                int delay = 15;
+                int delayMs = 15000;
                 try
                 {
-                    using var response = await client.PostAsJsonAsync(state.Origin + "/api/computers/agent", new { snapshot = await Machine.Sample(), completed = state.Completed }, Json);
+                    using var response = await client.PostAsJsonAsync(state.Origin + "/api/computers/agent", new { snapshot = await Machine.Sample(), completed = state.Completed, waitForCommand = true }, Json);
                     if (response.StatusCode == HttpStatusCode.Unauthorized) { Console.WriteLine("Computer is not paired or access was revoked. Companion stopped."); return 2; }
                     response.EnsureSuccessStatusCode();
                     using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                     var root = document.RootElement;
-                    delay = root.GetProperty("pollSeconds").GetInt32() == 5 ? 5 : 15;
+                    delayMs = root.GetProperty("pollSeconds").GetInt32() == 5 ? 5000 : 15000;
+                    bool waitingSupported = root.TryGetProperty("pollAfterMs", out var pollAfter) && pollAfter.ValueKind == JsonValueKind.Number && pollAfter.TryGetInt32(out int nextPoll) && nextPoll == 0;
+                    if (waitingSupported) delayMs = 0;
                     state = state with { Completed = null };
                     if (root.TryGetProperty("command", out var command) && command.ValueKind == JsonValueKind.Object)
                     {
@@ -122,12 +124,12 @@ internal static class Program
                             try { ok = Machine.Execute(command); } catch { /* Unknown outcome is not retried. */ }
                         }
                         state = state with { Completed = new(id, ok) };
-                        delay = 1; // Acknowledge once, then return to bounded normal polling.
+                        delayMs = waitingSupported ? 0 : 1000; // Report execution immediately; never replay an uncertain action.
                     }
                     Save(state); failures = 0;
                 }
-                catch { failures++; delay = Math.Min(60, 15 * failures); }
-                await Task.Delay(TimeSpan.FromSeconds(delay));
+                catch { failures++; delayMs = Math.Min(60000, 15000 * failures); }
+                await Task.Delay(delayMs);
             }
         }
         catch { Console.Error.WriteLine("Companion could not start. Check the protected configuration and Windows audio availability."); return 1; }

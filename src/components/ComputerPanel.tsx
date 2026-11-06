@@ -159,6 +159,10 @@ export function ComputerPanel() {
     sessionId?: string,
   ) {
     if (!pc || !can(action)) return;
+    const stamp = generation.current,
+      started = Date.now();
+    const current = () =>
+      alive.current && stamp === generation.current && navigator.onLine;
     setBusy(true);
     setMessage(
       "Request queued; waiting for the computer. It will not be retried automatically.",
@@ -176,8 +180,8 @@ export function ComputerPanel() {
         },
       });
       let status = "pending";
-      for (let i = 0; i < 20 && alive.current; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      const deadline = started + 20000;
+      while (current() && Date.now() < deadline) {
         const result = await post<{ status: string }>({
           operation: "result",
           computerId: pc.id,
@@ -185,17 +189,20 @@ export function ComputerPanel() {
         });
         status = result.status;
         if (!["pending", "claimed"].includes(status)) break;
+        await new Promise((resolve) =>
+          setTimeout(resolve, Date.now() - started < 4000 ? 500 : 1000),
+        );
       }
-      if (alive.current) {
+      if (current()) {
         setMessage(
           status === "acknowledged"
-            ? "Companion acknowledged the request. Check the latest reported value or the PC for the result."
+            ? `Companion acknowledged the request in ${Date.now() - started} ms through the cloud. Check the latest reported value or the PC for the result.`
             : `Execution ${["failed", "expired", "unknown"].includes(status) ? status : "unconfirmed"}. Refresh before deciding whether to try again.`,
         );
         await refresh();
       }
     } catch (e) {
-      if (alive.current)
+      if (current())
         setMessage(
           e instanceof Error
             ? e.message
