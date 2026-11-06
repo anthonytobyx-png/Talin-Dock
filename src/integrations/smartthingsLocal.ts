@@ -1,4 +1,18 @@
-export const defaultTvEndpoint = "https://192.168.1.3:42047";
+export const defaultTvEndpoint = "https://192.168.1.3:38293";
+export const tvRemoteActions = [
+  "up",
+  "down",
+  "left",
+  "right",
+  "ok",
+  "back",
+  "home",
+  "volumeUp",
+  "volumeDown",
+  "mute",
+  "unmute",
+] as const;
+export type TvRemoteAction = (typeof tvRemoteActions)[number];
 export interface HubTimer {
   id: string;
   action: "on" | "off";
@@ -10,6 +24,7 @@ export interface HubSnapshot {
   reportedPower: "on" | "off" | "unknown";
   reportedAt: number;
   timers: HubTimer[];
+  remoteActions: TvRemoteAction[];
 }
 export function tvEndpoint(value: string): string | null {
   try {
@@ -68,11 +83,27 @@ export function hubSnapshot(value: unknown): HubSnapshot {
     )
   )
     throw new Error("Unrecognized hub timers.");
+  const remoteActions =
+    data.remoteActions === undefined ||
+    (data.remoteActions &&
+      typeof data.remoteActions === "object" &&
+      !Array.isArray(data.remoteActions) &&
+      Object.keys(data.remoteActions).length === 0)
+      ? []
+      : data.remoteActions;
+  if (
+    !Array.isArray(remoteActions) ||
+    remoteActions.length > tvRemoteActions.length ||
+    remoteActions.some((action) => !tvRemoteActions.includes(action)) ||
+    new Set(remoteActions).size !== remoteActions.length
+  )
+    throw new Error("Unrecognized TV remote capabilities.");
   return {
     version: 1,
     reportedPower: data.reportedPower,
     reportedAt: data.reportedAt,
     timers,
+    remoteActions,
   };
 }
 export async function tvRequest(

@@ -1,6 +1,10 @@
 -- Authenticated LAN request boundary. No account tokens or network destinations.
 local M = {}
 local ORIGIN = "https://talin-dock.pages.dev"
+-- Provision matching owner-managed native rules before installing this driver.
+local REMOTE_ACTIONS = {"up", "down", "left", "right", "ok", "back", "home", "volumeUp", "volumeDown", "mute", "unmute"}
+local remote = {}
+for _, action in ipairs(REMOTE_ACTIONS) do remote[action] = true end
 local function identifier(s)
   return type(s) == "string" and #s >= 16 and #s <= 64 and not s:find("[^%w%-]")
 end
@@ -49,7 +53,7 @@ function M.new(store, emit, schedule, clock)
     end
     if method == "GET" and path == "/v1/status" then
       return 200, { version = 1, reportedPower = state.reportedPower,
-        reportedAt = state.reportedAt or 0, timers = state.timers,
+        reportedAt = state.reportedAt or 0, timers = state.timers, remoteActions = REMOTE_ACTIONS,
         source = "SmartThings rule; underlying device sample time unavailable" }
     end
     -- A CORS-safelisted POST avoids credential-free preflight on Safari 15.
@@ -58,6 +62,12 @@ function M.new(store, emit, schedule, clock)
       headers["content-type"] ~= "text/plain" or type(data) ~= "table" or not identifier(data.id) then return 403, {} end
     if path == "/v1/power" and (power(data.action) or data.action == "status") then
       local ok, fresh = pcall(request, data.action, data.id)
+      if not ok then return 503, { error = "Request outcome unknown; do not automatically retry." } end
+      return 202, { accepted = true, duplicate = not fresh, deviceConfirmed = false }
+    end
+    if path == "/v1/remote" and remote[data.action] then
+      if state.reportedPower ~= "on" then return 409, { error = "Request current TV status before using the remote." } end
+      local ok, fresh = pcall(request, "remote-" .. data.action, data.id)
       if not ok then return 503, { error = "Request outcome unknown; do not automatically retry." } end
       return 202, { accepted = true, duplicate = not fresh, deviceConfirmed = false }
     end

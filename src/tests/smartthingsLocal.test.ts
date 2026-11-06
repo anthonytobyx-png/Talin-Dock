@@ -25,6 +25,7 @@ describe("authenticated local TV boundary", () => {
     });
     expect(value.reportedPower).toBe("unknown");
     expect(value.timers).toEqual([]);
+    expect(value.remoteActions).toEqual([]);
     expect(() =>
       hubSnapshot({
         version: 1,
@@ -33,6 +34,27 @@ describe("authenticated local TV boundary", () => {
         timers: { hidden: "data" },
       }),
     ).toThrow();
+  });
+  it("accepts only the bounded remote capability catalog advertised by the authenticated hub", () => {
+    const report = {
+      version: 1,
+      reportedPower: "on",
+      reportedAt: 1,
+      timers: [],
+    };
+    expect(
+      hubSnapshot({ ...report, remoteActions: ["up", "mute"] }).remoteActions,
+    ).toEqual(["up", "mute"]);
+    expect(hubSnapshot({ ...report, remoteActions: {} }).remoteActions).toEqual(
+      [],
+    );
+    for (const remoteActions of [
+      ["launch-arbitrary-app"],
+      ["up", "up"],
+      { hidden: "up" },
+      null,
+    ])
+      expect(() => hubSnapshot({ ...report, remoteActions })).toThrow();
   });
   it("rejects malformed timer outcomes and never upgrades a sent request into device confirmation", () => {
     const timer = {

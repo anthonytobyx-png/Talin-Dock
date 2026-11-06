@@ -24,10 +24,10 @@ export function HouseholdConnections() {
       <p>
         {hub.ready
           ? "Secure TV hub reachable."
-          : "TV hub enrollment pending on this device."}{" "}
-        The iPad’s one-time device enrollment will be completed after the web
-        connections are ready. No certificate or password is requested by
-        individual TV widgets.
+          : "TV hub is not reachable on this device."}{" "}
+        Each device needs one-time TV identity enrollment in its system
+        settings. TV widgets share that connection and do not request separate
+        passwords.
       </p>
       <details>
         <summary>Advanced TV hub address</summary>
@@ -78,7 +78,7 @@ export function HouseholdConnections() {
             <p>
               Capabilities:{" "}
               {device.type === "tv"
-                ? "Power and hub timers. Volume, inputs and app launching are unavailable."
+                ? `Power and hub timers. ${hub.snapshot?.remoteActions.length || 0} verified remote actions available. Input and app shortcuts are unavailable.`
                 : device.confirmedCapabilities.join(", ") || "None verified"}
             </p>
             {device.updatedAt && (

@@ -20,7 +20,13 @@ local function initialize(driver, device)
       -- replace the mutable timer/request tables held by callback closures.
       set = function(state) device:set_field("talin-local-state-v1", json.encode(state), {persist = true}) end,
     }, function(action)
-      device:emit_event(bridge.request(action, {state_change = true}))
+      if action:sub(1, 7) == "remote-" then
+        -- This existing bounded string attribute is already supported by the
+        -- installed device profile; the HTTP boundary allowlists every action.
+        device:emit_event(diagnostic.stage(action, {state_change = true}))
+      else
+        device:emit_event(bridge.request(action, {state_change = true}))
+      end
     end, function(delay, callback) driver:call_with_delay(delay, callback) end, os.time)
     end)
     if not initialized then

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { defaultTvEndpoint } from "../src/integrations/smartthingsLocal";
 test.beforeEach(async ({ page }) => {
   await page.route("https://192.168.1.3:*/**", (route) => route.abort());
   await page.route("https://api.open-meteo.com/**", (route) =>
@@ -308,17 +309,33 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
   context,
 }) => {
   const commands: unknown[] = [];
+  let reportedPower = "off";
   await page.route("https://192.168.1.3:*/**", async (route) => {
     if (route.request().method() === "POST") {
-      commands.push(route.request().postDataJSON());
+      const command = route.request().postDataJSON();
+      commands.push(command);
+      if (command.action === "on") reportedPower = "on";
       await route.fulfill({ json: { accepted: true, deviceConfirmed: false } });
     } else
       await route.fulfill({
         json: {
           version: 1,
-          reportedPower: "off",
+          reportedPower,
           reportedAt: 1793880000,
           timers: {},
+          remoteActions: [
+            "up",
+            "down",
+            "left",
+            "right",
+            "ok",
+            "back",
+            "home",
+            "volumeUp",
+            "volumeDown",
+            "mute",
+            "unmute",
+          ],
         },
       });
   });
@@ -336,6 +353,9 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
     name: "Samsung TV power and timers",
   });
   await expect(panel).toContainText("Reported power: off");
+  await expect(
+    panel.getByRole("button", { name: "TV up", exact: true }),
+  ).toBeDisabled();
   await panel.getByRole("button", { name: "Turn on", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText(
     "request accepted by the hub",
@@ -343,6 +363,25 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
   await expect(panel).toContainText("Measurement time unavailable");
   expect(commands).toHaveLength(1);
   expect(commands[0]).toMatchObject({ action: "on" });
+  await panel.getByRole("button", { name: "TV up", exact: true }).click();
+  await expect(panel.getByRole("status")).toContainText(
+    "not confirmation of the on-screen result",
+  );
+  await panel
+    .getByRole("button", { name: "TV volume down", exact: true })
+    .click();
+  expect(commands).toHaveLength(3);
+  expect(commands[1]).toMatchObject({ action: "up" });
+  expect(commands[2]).toMatchObject({ action: "volumeDown" });
+  const remoteKey = await panel
+    .getByRole("button", { name: "TV up", exact: true })
+    .boundingBox();
+  expect(remoteKey!.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: "test-results/tv-controller.png" });
+  await panel.getByText("TV timer", { exact: true }).click();
+  await expect(
+    panel.getByRole("button", { name: "Add TV timer", exact: true }),
+  ).toBeVisible();
   await context.setOffline(true);
   await expect(
     panel.getByRole("button", { name: "Turn off", exact: true }),
@@ -351,8 +390,44 @@ test("TV local controls distinguish hub acknowledgement, reported power and stal
     panel.getByRole("button", { name: "Add TV timer", exact: true }),
   ).toBeDisabled();
   await expect(panel.getByRole("alert")).toContainText("stale");
-  expect(commands).toHaveLength(1);
+  await expect(
+    panel.getByRole("button", { name: "TV up", exact: true }),
+  ).toBeDisabled();
+  expect(commands).toHaveLength(3);
   await context.setOffline(false);
+});
+
+test("a reviewed hub port update recovers a saved connection through read-only authenticated status", async ({
+  page,
+}) => {
+  const previous = "https://192.168.1.3:60847";
+  const methods: string[] = [];
+  await page.addInitScript(
+    (endpoint) => localStorage.setItem("talin-tv-hub-endpoint", endpoint),
+    previous,
+  );
+  await page.route("https://192.168.1.3:*/**", async (route) => {
+    methods.push(route.request().method());
+    if (route.request().url().startsWith(previous))
+      return route.abort("connectionrefused");
+    expect(route.request().url()).toBe(defaultTvEndpoint + "/v1/status");
+    await route.fulfill({
+      json: { version: 1, reportedPower: "off", reportedAt: 1, timers: [] },
+    });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Devices", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Open Samsung TV controls" }),
+  ).toContainText("Off");
+  expect(
+    await page.evaluate(() => localStorage.getItem("talin-tv-hub-endpoint")),
+  ).toBe(defaultTvEndpoint);
+  expect(methods.length).toBeGreaterThanOrEqual(2);
+  expect(methods.every((method) => method === "GET")).toBe(true);
 });
 
 test("Smart Life connects inside Talin, labels unknown sample age, and keeps credentials out of local storage", async ({

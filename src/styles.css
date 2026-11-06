@@ -1679,3 +1679,69 @@ form > button {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.tv-remote {
+  margin: 16px 0;
+}
+.tv-navigation-pad {
+  display: grid;
+  grid-template: repeat(3, 52px) / repeat(3, 64px);
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.tv-navigation-pad .tv-key {
+  min-width: 44px;
+  min-height: 44px;
+}
+.tv-key-up {
+  grid-area: 1 / 2;
+}
+.tv-key-left {
+  grid-area: 2 / 1;
+}
+.tv-key-ok {
+  grid-area: 2 / 2;
+  background: var(--accent-soft);
+}
+.tv-key-right {
+  grid-area: 2 / 3;
+}
+.tv-key-down {
+  grid-area: 3 / 2;
+}
+.tv-remote-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.tv-remote-tools .tv-key {
+  font-size: 13px;
+  padding: 8px 6px;
+  gap: 5px;
+  white-space: nowrap;
+}
+@media (min-width: 760px) {
+  .tv-remote {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 12px;
+    max-width: 600px;
+  }
+  .tv-remote > small {
+    grid-column: 1 / -1;
+  }
+}
+.tv-timer-details {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 4px;
+}
+.tv-timer-details > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}

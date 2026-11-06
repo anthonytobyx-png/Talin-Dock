@@ -77,6 +77,40 @@ export function SamsungProvider({ children }: { children: ReactNode }) {
       setNow(Date.now());
       setError("");
     } catch {
+      // A reviewed driver update can change its ephemeral listening port. Try
+      // the release's verified default using authenticated GET only; never
+      // replay a control request or scan arbitrary LAN destinations.
+      if (
+        target !== defaultTvEndpoint &&
+        current.current === target &&
+        requestGeneration === generation.current
+      ) {
+        try {
+          const next = hubSnapshot(
+            await tvRequest(defaultTvEndpoint, "/v1/status"),
+          );
+          if (
+            current.current !== target ||
+            requestGeneration !== generation.current
+          )
+            return;
+          generation.current++;
+          current.current = defaultTvEndpoint;
+          setEndpoint(defaultTvEndpoint);
+          setSnapshot(next);
+          setLastSeen(Date.now());
+          setNow(Date.now());
+          setError("");
+          try {
+            localStorage.setItem(storageKey, defaultTvEndpoint);
+          } catch {
+            /* Non-secret routing preference only. */
+          }
+          return;
+        } catch {
+          /* Keep the saved endpoint when the authenticated fallback fails. */
+        }
+      }
       if (
         current.current === target &&
         requestGeneration === generation.current
