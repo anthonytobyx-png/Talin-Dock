@@ -6,6 +6,14 @@
   -webkit-font-smoothing: antialiased;
   color-scheme: dark;
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 * {
   box-sizing: border-box;
 }
@@ -1389,4 +1397,285 @@ form > button {
 .modal input,
 .modal select {
   font-size: 16px;
+}
+
+/* A bounded mixer keeps the computer controls together on tablet/desktop. */
+.computer-console {
+  min-width: 0;
+}
+.computer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.computer-toolbar h1 {
+  font-size: 26px;
+  margin: 0;
+}
+.computer-picker {
+  min-width: 0;
+  flex: 1;
+  max-width: 280px;
+}
+.computer-presence {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.computer-presence::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #92959e;
+  margin-right: 6px;
+}
+.computer-presence.is-connected::before {
+  background: #83d6ac;
+}
+.computer-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.computer-mixer,
+.computer-performance,
+.computer-shortcuts,
+.computer-microphone {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  min-width: 0;
+}
+.computer-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.computer-section-heading > span {
+  color: var(--muted);
+  font-size: 11px;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mixer-channel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 0;
+}
+.mixer-master {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.mixer-volume {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(78px, 0.8fr) minmax(60px, 1fr) 58px;
+  align-items: center;
+  gap: 8px;
+}
+.mixer-volume label {
+  min-width: 0;
+  font-size: 12px;
+}
+.mixer-volume label > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mixer-volume small {
+  display: block;
+}
+.mixer-volume input[type="range"] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--accent);
+}
+.mixer-volume button,
+.mixer-mute {
+  padding: 8px;
+  font-size: 12px;
+}
+.mixer-mute {
+  width: 62px;
+  flex-shrink: 0;
+}
+.mixer-mute[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.mixer-app-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 4px;
+  gap: 8px;
+}
+.mixer-app-heading h3 {
+  font-size: 13px;
+  margin: 0;
+}
+.mixer-apps {
+  min-height: 224px;
+}
+.mixer-empty {
+  padding: 20px 0;
+}
+.mixer-pagination {
+  display: flex;
+  flex-direction: row;
+  flex: none;
+  overflow: visible;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.mixer-pagination button {
+  font-size: 12px;
+}
+.computer-utilities {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.computer-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.computer-metrics > div {
+  min-width: 0;
+}
+.computer-metrics small {
+  display: block;
+}
+.computer-metrics strong {
+  display: block;
+  font-size: 23px;
+  font-weight: 550;
+  letter-spacing: -0.5px;
+  margin-top: 3px;
+}
+.computer-metrics strong small {
+  display: inline;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.computer-media-keys,
+.computer-desktop-keys {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.computer-media-keys {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.computer-desktop-keys {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 6px 0 8px;
+}
+.computer-shortcuts button {
+  padding: 8px 4px;
+  font-size: 11px;
+}
+.computer-microphone h2 {
+  font-size: 14px;
+}
+.computer-microphone button {
+  width: 100%;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.computer-command-status {
+  font-size: 12px;
+  margin: 10px 0 0;
+  min-height: 20px;
+  line-height: 1.4;
+}
+.computer-error {
+  margin: 0 0 10px;
+}
+@media (min-width: 760px) and (max-height: 800px) {
+  .computer-toolbar {
+    margin-bottom: 12px;
+  }
+  .computer-workspace {
+    gap: 12px;
+  }
+  .computer-mixer,
+  .computer-performance,
+  .computer-shortcuts,
+  .computer-microphone {
+    padding: 12px;
+  }
+  .computer-metrics {
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .computer-metrics strong {
+    font-size: 20px;
+  }
+  .computer-utilities {
+    gap: 10px;
+  }
+}
+@media (max-width: 759px) {
+  .computer-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .computer-toolbar h1 {
+    font-size: 23px;
+  }
+  .computer-picker {
+    max-width: none;
+  }
+  .computer-presence {
+    margin-left: 0;
+  }
+  .computer-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .computer-utilities {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .computer-microphone {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 480px) {
+  .computer-mixer {
+    padding: 10px;
+  }
+  .mixer-volume {
+    grid-template-columns: minmax(62px, 0.75fr) minmax(40px, 1fr) 44px;
+    gap: 4px;
+  }
+  .mixer-channel {
+    gap: 4px;
+  }
+  .mixer-mute {
+    width: 48px;
+  }
+  .computer-utilities {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

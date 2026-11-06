@@ -1,5 +1,12 @@
 # Cloud app implementation status
 
+## Compact computer console and TV online limitation — 6 November 2026
+
+- Computer now groups the sound mixer, measured performance, media/desktop shortcuts and communications-microphone mute in one compact console. The mixer shows four application sessions per page, retains explicit Apply before volume commands and labels mute state. Selecting another computer resets the application page and drafts; stale/offline and unsupported controls remain disabled. Setup stays in Settings.
+- Browser checks use nine fixture sessions, a long application name, application pagination, real command payload/acknowledgement handling and offline disabling. Normal connected layouts fit without document scrolling at 1024 x 768, 1280 x 720 and 2048 x 1536. Smaller/narrower screens may scroll to preserve readable controls and 44-pixel touch targets. Physical iPad acceptance remains unverified.
+- TV power and a one-minute hub timer were rechecked against separate SmartThings provider reads; the starting Off state was restored. A listener port change was observed and the commissioning browser's saved address updated. This does not establish universal browser control or remote internet access. No household certificate was installed. Alexa remains excluded at the owner's request.
+- A supported persistent SmartThings cloud API connection currently requires a paid Developer plan; short-lived PATs and the development CLI are not an approved substitute for a permanent production integration. With paid services, an always-on PC bridge and Alexa excluded, no shared TV online route has been verified. Existing TV controls remain unavailable to browsers without the required local identity. See [Samsung's current API access requirements](https://developer.smartthings.com/docs/service-integrations/app-setup).
+
 ## Simple devices and Settings-only configuration — 6 November 2026
 
 - Devices is one compact grid: icon, name and actual reported status. Tapping a tile opens an accessible dialog with operational controls only. TV power and hub timers reuse the verified route; unsupported remote buttons are no longer displayed. The dehumidifier dialog shows humidity, reported power, on/off, service timers and its confirmed native countdown. Opening a dialog sends no appliance action. Saved service timers reload on reopening; availability/capability guards and acknowledgement-versus-physical-result distinctions remain.

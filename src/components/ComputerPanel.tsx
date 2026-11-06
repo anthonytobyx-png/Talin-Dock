@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { ComputerSnapshot } from "../computers/model";
 import { cloudRequest } from "../data/cloud";
 import { commandId } from "../integrations/commandId";
@@ -30,31 +30,40 @@ function Volume({
 }) {
   const [level, setLevel] = useState(Math.round(value)),
     [dirty, setDirty] = useState(false);
+  const inputId = useId();
   useEffect(() => {
     if (!dirty) setLevel(Math.round(value));
   }, [value, dirty]);
   return (
-    <div>
-      <label className="field">
-        {label} · reported {Math.round(value)}%
-        <input
-          aria-label={label}
-          type="range"
-          min="0"
-          max="100"
-          value={level}
-          disabled={disabled}
-          onChange={(event) => {
-            setDirty(true);
-            setLevel(Number(event.target.value));
-          }}
-        />
+    <div className="mixer-volume">
+      <label
+        htmlFor={inputId}
+        title={`${label} · reported ${Math.round(value)}%`}
+      >
+        <span>{label}</span>
+        <small>
+          {level}%{dirty ? " · unsaved" : ""}
+        </small>
       </label>
+      <input
+        id={inputId}
+        aria-label={label}
+        type="range"
+        min="0"
+        max="100"
+        value={level}
+        disabled={disabled}
+        onChange={(event) => {
+          setDirty(true);
+          setLevel(Number(event.target.value));
+        }}
+      />
       <button
+        aria-label={`Apply ${label.toLowerCase()} · ${level}%`}
         disabled={disabled || !dirty}
         onClick={() => void apply(level).finally(() => setDirty(false))}
       >
-        Apply {label.toLowerCase()} · {level}%
+        Apply
       </button>
     </div>
   );
@@ -66,6 +75,7 @@ export function ComputerPanel() {
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
+    [audioPage, setAudioPage] = useState(0),
     [latency, setLatency] = useState<number>();
   const alive = useRef(true),
     refreshAgain = useRef<() => Promise<void>>(async () => {}),
@@ -145,6 +155,11 @@ export function ComputerPanel() {
   }, [refresh]);
   const pc = computers.find((value) => value.id === selected),
     snapshot = pc?.snapshot;
+  const audioPages = Math.max(
+    1,
+    Math.ceil((snapshot?.audio?.sessions.length || 0) / 4),
+  );
+  const currentAudioPage = Math.min(audioPage, audioPages - 1);
   const fresh =
     !!pc?.online &&
     !!snapshot &&
@@ -213,20 +228,52 @@ export function ComputerPanel() {
     }
   }
   return (
-    <>
-      <div className="page-intro">
-        <span className="eyebrow">YOUR DESK, CONNECTED</span>
+    <section className="computer-console" aria-label="Computer controls">
+      <header className="computer-toolbar">
         <h1>Computer</h1>
-        <p>
-          Each Windows account has its own companion. Performance describes the
-          PC; audio and desktop controls use the selected account’s session.
+        {computers.length > 0 && (
+          <label className="computer-picker">
+            <span className="sr-only">Computer</span>
+            <select
+              aria-label="Computer"
+              value={selected}
+              onChange={(event) => {
+                generation.current++;
+                setSelected(event.target.value);
+                setMessage("");
+                setAudioPage(0);
+              }}
+            >
+              {computers.map((value) => (
+                <option key={value.id} value={value.id}>
+                  {value.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <span
+          className={`computer-presence ${fresh ? "is-connected" : ""}`}
+          title={
+            pc?.lastSeen
+              ? `Last report: ${new Date(pc.lastSeen).toLocaleString()}. Cloud request: ${latency === undefined ? "unmeasured" : `${latency} ms`}.`
+              : "No report received"
+          }
+        >
+          {fresh ? "Connected" : "Offline / stale"}
+        </span>
+        <button
+          onClick={() => void refresh()}
+          aria-label="Refresh computer status"
+        >
+          Refresh
+        </button>
+      </header>
+      {error && (
+        <p className="computer-error" role="alert">
+          {error}
         </p>
-        <p>
-          Optional Windows companions. Home keeps working when every computer is
-          off.
-        </p>
-      </div>
-      {error && <p role="alert">{error}</p>}
+      )}
       {!computers.length ? (
         <Panel
           title={
@@ -235,183 +282,237 @@ export function ComputerPanel() {
         >
           <p>Your paired computers appear here when available.</p>
         </Panel>
-      ) : (
-        <>
-          <label className="field">
-            Computer
-            <select
-              value={selected}
-              onChange={(event) => {
-                generation.current++;
-                setSelected(event.target.value);
-                setMessage("");
-              }}
+      ) : snapshot ? (
+        <div className="computer-workspace" key={selected}>
+          <section className="computer-mixer" aria-label="Windows sound mixer">
+            <header className="computer-section-heading">
+              <h2>Sound mixer</h2>
+              <span title={snapshot.audio?.output}>
+                {snapshot.audio?.output || "Output unavailable"}
+              </span>
+            </header>
+            {snapshot.audio ? (
+              <>
+                <div className="mixer-channel mixer-master">
+                  <Volume
+                    label="Master volume"
+                    value={snapshot.audio.volume}
+                    disabled={!can("masterVolume")}
+                    apply={(value) => command("masterVolume", value)}
+                  />
+                  <button
+                    className="mixer-mute"
+                    aria-label={
+                      snapshot.audio.muted ? "Unmute speakers" : "Mute speakers"
+                    }
+                    aria-pressed={snapshot.audio.muted}
+                    disabled={!can("masterMute")}
+                    onClick={() =>
+                      void command("masterMute", !snapshot.audio!.muted)
+                    }
+                  >
+                    {snapshot.audio.muted ? "Unmute" : "Mute"}
+                  </button>
+                </div>
+                <div className="mixer-app-heading">
+                  <h3>Applications</h3>
+                  <small>{snapshot.audio.sessions.length} on this output</small>
+                </div>
+                <div className="mixer-apps">
+                  {snapshot.audio.sessions.length ? (
+                    snapshot.audio.sessions
+                      .slice(currentAudioPage * 4, currentAudioPage * 4 + 4)
+                      .map((session) => (
+                        <div className="mixer-channel" key={session.id}>
+                          <Volume
+                            label={`${session.name} volume`}
+                            value={session.volume}
+                            disabled={!can("sessionVolume")}
+                            apply={(value) =>
+                              command("sessionVolume", value, session.id)
+                            }
+                          />
+                          <button
+                            className="mixer-mute"
+                            aria-label={`${session.muted ? "Unmute" : "Mute"} ${session.name}`}
+                            aria-pressed={session.muted}
+                            disabled={!can("sessionMute")}
+                            onClick={() =>
+                              void command(
+                                "sessionMute",
+                                !session.muted,
+                                session.id,
+                              )
+                            }
+                          >
+                            {session.muted ? "Unmute" : "Mute"}
+                          </button>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="mixer-empty">
+                      No audio sessions were reported.
+                    </p>
+                  )}
+                </div>
+                <nav
+                  className="mixer-pagination"
+                  aria-label="Audio application pages"
+                >
+                  <button
+                    aria-label="Previous audio applications"
+                    disabled={currentAudioPage === 0}
+                    onClick={() => setAudioPage(currentAudioPage - 1)}
+                  >
+                    Previous
+                  </button>
+                  <small>
+                    Page {currentAudioPage + 1} of {audioPages}
+                  </small>
+                  <button
+                    aria-label="Next audio applications"
+                    disabled={currentAudioPage + 1 >= audioPages}
+                    onClick={() => setAudioPage(currentAudioPage + 1)}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </>
+            ) : (
+              <p>Windows audio is unavailable.</p>
+            )}
+          </section>
+          <aside
+            className="computer-utilities"
+            aria-label="Performance and shortcuts"
+          >
+            <section
+              className="computer-performance"
+              aria-label="Measured performance"
             >
-              {computers.map((value) => (
-                <option key={value.id} value={value.id}>
-                  {value.name} · {value.platform}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Panel title={pc?.name || "Computer"}>
-            <span className="badge">
-              {fresh ? "Connected through cloud relay" : "Disconnected / stale"}
-            </span>
-            <p>
-              Last report:{" "}
-              {pc?.lastSeen
-                ? new Date(pc.lastSeen).toLocaleString()
-                : "Not received"}
-              . Cloud request:{" "}
-              {latency === undefined ? "Unmeasured" : `${latency} ms`}; active
-              sampling is about five seconds.
-            </p>
-            <button onClick={() => void refresh()}>
-              Refresh computer status
-            </button>
-          </Panel>
-          {snapshot && (
-            <div className="two-columns">
-              <div>
-                <Panel title="Measured performance">
-                  <p>
-                    {!fresh && "Stale report. "}CPU:{" "}
+              <h2>Performance{!fresh ? " · stale" : ""}</h2>
+              <div className="computer-metrics">
+                <div>
+                  <small>CPU</small>
+                  <strong>
                     {snapshot.cpuPercent === null
-                      ? "Sampling unavailable"
+                      ? "Unavailable"
                       : `${snapshot.cpuPercent}%`}
-                  </p>
-                  <p>
-                    Memory: {(snapshot.memoryUsedMb / 1024).toFixed(1)} /{" "}
-                    {(snapshot.memoryTotalMb / 1024).toFixed(1)} GiB
-                  </p>
-                  {snapshot.gpu ? (
-                    <>
-                      <p>{snapshot.gpu.name}</p>
-                      <p>
-                        GPU: {snapshot.gpu.loadPercent}% ·{" "}
-                        {snapshot.gpu.temperatureC}°C
-                      </p>
-                      <p>
-                        GPU memory:{" "}
-                        {(snapshot.gpu.memoryUsedMb / 1024).toFixed(1)} /{" "}
-                        {(snapshot.gpu.memoryTotalMb / 1024).toFixed(1)} GiB
-                      </p>
-                    </>
-                  ) : (
-                    <p>GPU measurements unavailable.</p>
+                  </strong>
+                </div>
+                <div>
+                  <small>Memory</small>
+                  <strong>
+                    {(snapshot.memoryUsedMb / 1024).toFixed(1)}{" "}
+                    <small>
+                      / {(snapshot.memoryTotalMb / 1024).toFixed(0)} GiB
+                    </small>
+                  </strong>
+                </div>
+                <div title={snapshot.gpu?.name}>
+                  <small>GPU</small>
+                  <strong>
+                    {snapshot.gpu
+                      ? `${snapshot.gpu.loadPercent}%`
+                      : "Unavailable"}
+                  </strong>
+                  <small>
+                    {snapshot.gpu
+                      ? `${snapshot.gpu.temperatureC}°C`
+                      : "No report"}
+                  </small>
+                </div>
+                <div>
+                  <small>GPU memory</small>
+                  <strong>
+                    {snapshot.gpu
+                      ? `${(snapshot.gpu.memoryUsedMb / 1024).toFixed(1)} GiB`
+                      : "Unavailable"}
+                  </strong>
+                  {snapshot.gpu && (
+                    <small>
+                      of {(snapshot.gpu.memoryTotalMb / 1024).toFixed(0)} GiB
+                    </small>
                   )}
-                  <p>
-                    CPU temperature is unavailable; no temperature is estimated
-                    from load.
-                  </p>
-                </Panel>
-                <Panel title="Media & desktop">
-                  <div className="button-row">
-                    {[
-                      ["mediaPrevious", "Previous"],
-                      ["mediaPlayPause", "Play / pause"],
-                      ["mediaNext", "Next"],
-                      ["showDesktop", "Show desktop"],
-                      ["taskManager", "Task Manager"],
-                    ].map(([action, label]) => (
-                      <button
-                        key={action}
-                        disabled={!can(action)}
-                        onClick={() => void command(action)}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                </div>
+              </div>
+            </section>
+            <section
+              className="computer-shortcuts"
+              aria-label="Media and desktop"
+            >
+              <h2>Media & desktop</h2>
+              <div className="computer-media-keys">
+                {[
+                  ["mediaPrevious", "Previous"],
+                  ["mediaPlayPause", "Play / pause"],
+                  ["mediaNext", "Next"],
+                ].map(([action, label]) => (
+                  <button
+                    key={action}
+                    disabled={!can(action)}
+                    onClick={() => void command(action)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="computer-desktop-keys">
+                {[
+                  ["showDesktop", "Show desktop"],
+                  ["taskManager", "Task Manager"],
+                ].map(([action, label]) => (
+                  <button
+                    key={action}
+                    disabled={!can(action)}
+                    onClick={() => void command(action)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <small>
+                Media keys are sent to Windows; playback state is not reported.
+              </small>
+            </section>
+            {snapshot.audio?.microphoneMuted !== null &&
+              snapshot.audio?.microphoneMuted !== undefined && (
+                <section
+                  className="computer-microphone"
+                  aria-label="Communications microphone"
+                >
+                  <div>
+                    <h2>Microphone</h2>
+                    <small>
+                      Default communications input · no audio collected
+                    </small>
                   </div>
-                  <p>
-                    Media keys go to Windows. No playback title or playing state
-                    is reported. Lock, sleep, screenshots and output switching
-                    remain unavailable.
-                  </p>
-                </Panel>
-              </div>
-              <div>
-                <Panel title="Windows sound mixer">
-                  {snapshot.audio ? (
-                    <>
-                      <p>Output: {snapshot.audio.output}</p>
-                      <Volume
-                        label="Master volume"
-                        value={snapshot.audio.volume}
-                        disabled={!can("masterVolume")}
-                        apply={(value) => command("masterVolume", value)}
-                      />
-                      <button
-                        disabled={!can("masterMute")}
-                        onClick={() =>
-                          void command("masterMute", !snapshot.audio!.muted)
-                        }
-                      >
-                        {snapshot.audio.muted
-                          ? "Unmute speakers"
-                          : "Mute speakers"}
-                      </button>
-                      {snapshot.audio.microphoneMuted !== null && (
-                        <button
-                          disabled={!can("microphoneMute")}
-                          onClick={() =>
-                            void command(
-                              "microphoneMute",
-                              !snapshot.audio!.microphoneMuted,
-                            )
-                          }
-                        >
-                          {snapshot.audio.microphoneMuted
-                            ? "Unmute communications microphone"
-                            : "Mute communications microphone"}
-                        </button>
-                      )}
-                      <p>
-                        Only the default Windows communications microphone is
-                        affected. No microphone audio is recorded or sent to
-                        Talin.
-                      </p>
-                      <h3>Application audio on this output</h3>
-                      {snapshot.audio.sessions.length ? (
-                        snapshot.audio.sessions.map((session) => (
-                          <div key={session.id}>
-                            <Volume
-                              label={`${session.name} volume`}
-                              value={session.volume}
-                              disabled={!can("sessionVolume")}
-                              apply={(value) =>
-                                command("sessionVolume", value, session.id)
-                              }
-                            />
-                            <button
-                              disabled={!can("sessionMute")}
-                              onClick={() =>
-                                void command(
-                                  "sessionMute",
-                                  !session.muted,
-                                  session.id,
-                                )
-                              }
-                            >
-                              {session.muted ? "Unmute" : "Mute"} {session.name}
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <p>No audio sessions were reported.</p>
-                      )}
-                    </>
-                  ) : (
-                    <p>Windows audio is unavailable.</p>
-                  )}
-                </Panel>
-              </div>
-            </div>
-          )}
-        </>
+                  <button
+                    aria-pressed={snapshot.audio.microphoneMuted}
+                    disabled={!can("microphoneMute")}
+                    onClick={() =>
+                      void command(
+                        "microphoneMute",
+                        !snapshot.audio!.microphoneMuted,
+                      )
+                    }
+                  >
+                    {snapshot.audio.microphoneMuted
+                      ? "Unmute communications microphone"
+                      : "Mute communications microphone"}
+                  </button>
+                </section>
+              )}
+          </aside>
+        </div>
+      ) : (
+        <Panel title="Waiting for a report">
+          <p>The selected account has not sent a computer report yet.</p>
+        </Panel>
       )}
-      <p role="status">{message}</p>
-    </>
+      <p className="computer-command-status" role="status">
+        {message}
+      </p>
+    </section>
   );
 }

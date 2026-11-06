@@ -495,6 +495,7 @@ test("Computer mode uses live reports, acknowledges bounded controls and disable
   context,
 }) => {
   let volume = 50;
+  await page.setViewportSize({ width: 1024, height: 768 });
   const commands: unknown[] = [];
   const id = "33333333-3333-4333-8333-333333333333";
   await page.route("**/api/computers", async (route) => {
@@ -537,8 +538,16 @@ test("Computer mode uses live reports, acknowledges bounded controls and disable
                   volume,
                   muted: false,
                   output: "Fixture speakers",
-                  microphoneMuted: null,
-                  sessions: [],
+                  microphoneMuted: false,
+                  sessions: Array.from({ length: 9 }, (_, index) => ({
+                    id: `session-${index}`,
+                    name:
+                      index === 0
+                        ? "An application with a very long audio session name"
+                        : `Audio app ${index + 1}`,
+                    volume: 40,
+                    muted: false,
+                  })),
                 },
                 capabilities: ["masterVolume", "masterMute"],
               },
@@ -552,7 +561,50 @@ test("Computer mode uses live reports, acknowledges bounded controls and disable
     .getByRole("navigation")
     .getByRole("button", { name: "Computer", exact: true })
     .click();
-  await expect(page.getByText("CPU: 23%", { exact: false })).toBeVisible();
+  await expect(
+    page.getByLabel("Measured performance").getByText("23%", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: "test-results/computer-console.png" });
+  await expect(page.locator(".mixer-apps .mixer-channel")).toHaveCount(4);
+  await page.getByRole("button", { name: "Next audio applications" }).click();
+  await expect(
+    page.getByRole("slider", { name: "Audio app 5 volume", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Next audio applications" }).click();
+  await expect(
+    page.getByRole("slider", { name: "Audio app 9 volume", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Next audio applications" }),
+  ).toBeDisabled();
+  expect(commands).toEqual([]);
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1280, height: 720 },
+    { width: 2048, height: 1536 },
+  ]) {
+    await page.setViewportSize(viewport);
+    expect(
+      await page.evaluate(() => ({
+        vertical: document.documentElement.scrollHeight > innerHeight,
+        horizontal: document.documentElement.scrollWidth > innerWidth,
+      })),
+    ).toEqual({ vertical: false, horizontal: false });
+    const lastControl = page.getByRole("button", {
+      name: "Mute communications microphone",
+      exact: true,
+    });
+    const bounds = await lastControl.boundingBox();
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height);
+  }
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page
+    .getByRole("button", { name: "Previous audio applications" })
+    .click();
+  await page
+    .getByRole("button", { name: "Previous audio applications" })
+    .click();
   const slider = page.getByRole("slider", {
     name: "Master volume",
     exact: true,
