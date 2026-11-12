@@ -1,4 +1,4 @@
-export const defaultTvEndpoint = "https://192.168.1.3:38293";
+export const defaultTvEndpoint = "https://192.168.1.3:35767";
 export const tvRemoteActions = [
   "up",
   "down",
