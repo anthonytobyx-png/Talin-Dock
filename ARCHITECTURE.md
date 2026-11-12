@@ -1,5 +1,15 @@
 # Selected architecture
 
+## Appearance refresh — 12 November 2026
+
+Power controls now use labelled power glyphs; computer media, speaker and microphone controls use familiar icons with accessible names. Existing commands, acknowledgements, timers and capability/offline guards are preserved.
+
+Settings → Appearance offers six per-profile palettes, optional gentle motion/glow and a decorative pixel visitor. The visitor wanders and hides within its own header lane, never covers controls and pauses while the page is hidden. Reduced-motion preferences disable animation; the motion switch also disables transitions. The compact Computer layout retains its existing tablet fit.
+
+Appearance preferences are optional fields in the existing allowlisted schema. Legacy snapshots retain their defaults, and changing one profile does not replace other profiles or household data. No credentials or device readings are stored in these preferences.
+
+Validation: typecheck, lint, production build, 48 unit/backend tests, 17 browser checks and six real local Pages/D1 checks passed. Tests cover appearance persistence, reduced motion, zero device commands from appearance changes, unchanged household data and the cloud preference round trip. No appliance commands were sent for this visual refresh.
+
 ## iPad TV enrollment and verified remote — 6 November 2026
 
 - The owner installed/trusted the scoped TV root and encrypted client identity on the iPad, confirmed Talin power on/off, and physically verified all eleven remote controls: directional pad, OK, Back, Home, volume up/down and mute/unmute. OK selected the identified Discover tab. The TV was returned to its initial Off state. The temporary identity-transfer server stopped and both temporary firewall rules were removed; the original Python inbound block is enabled again. No Windows certificate trust change, paid plan, Alexa bridge or port forwarding was introduced.

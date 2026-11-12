@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useSamsung } from "../data/SamsungContext";
 import { Panel } from "./primitives";
+import { PowerAction } from "./PowerAction";
 import {
   ChevronUp,
   ChevronDown,
@@ -71,8 +72,14 @@ export function SamsungLocalConnection() {
         </p>
         <div className="button-row">
           {["on", "off"].map((power) => (
-            <button
+            <PowerAction
               key={power}
+              on={power === "on"}
+              reported={
+                hub.ready && hub.snapshot?.reportedPower !== "unknown"
+                  ? hub.snapshot?.reportedPower === "on"
+                  : undefined
+              }
               disabled={!hub.ready || hub.busy}
               onClick={() =>
                 void send(
@@ -81,9 +88,7 @@ export function SamsungLocalConnection() {
                   `Turn ${power} request accepted by the hub. Check the TV's reported state separately.`,
                 )
               }
-            >
-              Turn {power}
-            </button>
+            />
           ))}
           <button
             disabled={!hub.ready || hub.busy}

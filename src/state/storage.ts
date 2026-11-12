@@ -4,6 +4,7 @@ import {
   rooms,
   sections,
   widgetNames,
+  themes,
   type AppState,
 } from "./model";
 export const STORAGE_KEY = "talin-dock.preferences.v1";
@@ -34,7 +35,10 @@ export function decode(raw: string | null): AppState {
       const out = fallback.profiles[id];
       if (typeof p.name === "string" && p.name.trim() && id !== "household")
         out.name = p.name.trim().slice(0, 40);
-      if (["charcoal", "slate", "black"].includes(p.theme)) out.theme = p.theme;
+      if (themes.includes(p.theme)) out.theme = p.theme;
+      if (typeof p.effects === "boolean") out.effects = p.effects;
+      if (typeof p.pixelCompanion === "boolean")
+        out.pixelCompanion = p.pixelCompanion;
       if (typeof p.hour24 === "boolean") out.hour24 = p.hour24;
       if (typeof p.idleReturn === "boolean") out.idleReturn = p.idleReturn;
       if (Array.isArray(p.visibleCalendars))

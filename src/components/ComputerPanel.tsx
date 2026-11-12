@@ -3,6 +3,18 @@ import type { ComputerSnapshot } from "../computers/model";
 import { cloudRequest } from "../data/cloud";
 import { commandId } from "../integrations/commandId";
 import { Panel } from "./primitives";
+import {
+  SkipBack,
+  SkipForward,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Monitor,
+  Activity,
+} from "lucide-react";
 interface Computer {
   id: string;
   name: string;
@@ -306,12 +318,19 @@ export function ComputerPanel() {
                       snapshot.audio.muted ? "Unmute speakers" : "Mute speakers"
                     }
                     aria-pressed={snapshot.audio.muted}
+                    title={
+                      snapshot.audio.muted ? "Unmute speakers" : "Mute speakers"
+                    }
                     disabled={!can("masterMute")}
                     onClick={() =>
                       void command("masterMute", !snapshot.audio!.muted)
                     }
                   >
-                    {snapshot.audio.muted ? "Unmute" : "Mute"}
+                    {snapshot.audio.muted ? (
+                      <Volume2 size={20} aria-hidden="true" />
+                    ) : (
+                      <VolumeX size={20} aria-hidden="true" />
+                    )}
                   </button>
                 </div>
                 <div className="mixer-app-heading">
@@ -336,6 +355,7 @@ export function ComputerPanel() {
                             className="mixer-mute"
                             aria-label={`${session.muted ? "Unmute" : "Mute"} ${session.name}`}
                             aria-pressed={session.muted}
+                            title={`${session.muted ? "Unmute" : "Mute"} ${session.name}`}
                             disabled={!can("sessionMute")}
                             onClick={() =>
                               void command(
@@ -345,7 +365,11 @@ export function ComputerPanel() {
                               )
                             }
                           >
-                            {session.muted ? "Unmute" : "Mute"}
+                            {session.muted ? (
+                              <Volume2 size={20} aria-hidden="true" />
+                            ) : (
+                              <VolumeX size={20} aria-hidden="true" />
+                            )}
                           </button>
                         </div>
                       ))
@@ -450,10 +474,21 @@ export function ComputerPanel() {
                 ].map(([action, label]) => (
                   <button
                     key={action}
+                    aria-label={label}
+                    title={label}
                     disabled={!can(action)}
                     onClick={() => void command(action)}
                   >
-                    {label}
+                    {action === "mediaPrevious" ? (
+                      <SkipBack size={22} aria-hidden="true" />
+                    ) : action === "mediaNext" ? (
+                      <SkipForward size={22} aria-hidden="true" />
+                    ) : (
+                      <span className="media-play-pause" aria-hidden="true">
+                        <Play size={19} />
+                        <Pause size={17} />
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -464,9 +499,16 @@ export function ComputerPanel() {
                 ].map(([action, label]) => (
                   <button
                     key={action}
+                    aria-label={label}
+                    title={label}
                     disabled={!can(action)}
                     onClick={() => void command(action)}
                   >
+                    {action === "showDesktop" ? (
+                      <Monitor size={17} aria-hidden="true" />
+                    ) : (
+                      <Activity size={17} aria-hidden="true" />
+                    )}
                     {label}
                   </button>
                 ))}
@@ -489,6 +531,16 @@ export function ComputerPanel() {
                   </div>
                   <button
                     aria-pressed={snapshot.audio.microphoneMuted}
+                    aria-label={
+                      snapshot.audio.microphoneMuted
+                        ? "Unmute communications microphone"
+                        : "Mute communications microphone"
+                    }
+                    title={
+                      snapshot.audio.microphoneMuted
+                        ? "Unmute communications microphone"
+                        : "Mute communications microphone"
+                    }
                     disabled={!can("microphoneMute")}
                     onClick={() =>
                       void command(
@@ -497,9 +549,12 @@ export function ComputerPanel() {
                       )
                     }
                   >
-                    {snapshot.audio.microphoneMuted
-                      ? "Unmute communications microphone"
-                      : "Mute communications microphone"}
+                    {snapshot.audio.microphoneMuted ? (
+                      <Mic size={18} aria-hidden="true" />
+                    ) : (
+                      <MicOff size={18} aria-hidden="true" />
+                    )}
+                    {snapshot.audio.microphoneMuted ? "Unmute mic" : "Mute mic"}
                   </button>
                 </section>
               )}

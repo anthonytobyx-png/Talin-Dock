@@ -85,15 +85,23 @@ test("D1 persists preferences, rejects stale revisions and revokes sessions", as
   const snapshot = await read.json();
   const state = defaults();
   state.profiles.anthony.name = "Cloud Anthony";
+  state.profiles.anthony.theme = "aurora";
+  state.profiles.anthony.effects = false;
+  state.profiles.anthony.pixelCompanion = false;
   const write = await request.put("/api/preferences", {
     headers: { ...headers, "If-Match": `"${snapshot.revision}"` },
     data: state,
   });
   expect(write.status()).toBe(200);
   const stored = await request.get("/api/preferences");
-  expect((await stored.json()).state.profiles.anthony.name).toBe(
-    "Cloud Anthony",
-  );
+  const restored = (await stored.json()).state;
+  expect(restored.profiles.anthony.name).toBe("Cloud Anthony");
+  expect(restored.profiles.anthony).toMatchObject({
+    theme: "aurora",
+    effects: false,
+    pixelCompanion: false,
+  });
+  expect(restored.household).toEqual(state.household);
   expect(
     (
       await request.put("/api/preferences", {

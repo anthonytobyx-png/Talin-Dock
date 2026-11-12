@@ -1,5 +1,6 @@
 import { useStore } from "../state/Store";
-import { profileIds, type Theme } from "../state/model";
+import { profileIds } from "../state/model";
+import { AppearanceSettings } from "../components/AppearanceSettings";
 import { devices } from "../devices/model";
 import { Panel } from "../components/primitives";
 import { CloudSettings } from "../components/CloudSettings";
@@ -21,6 +22,7 @@ export function Settings() {
       </div>
       <div className="two-columns">
         <div>
+          <AppearanceSettings />
           <DashboardSettings />
           <Panel title={`Personal · ${profile.name}`}>
             <p>Applies only to the active profile.</p>
@@ -39,22 +41,6 @@ export function Settings() {
                 />
               </label>
             )}
-            <label className="field">
-              Theme
-              <select
-                value={profile.theme}
-                onChange={(e) =>
-                  dispatch({
-                    type: "preferences",
-                    patch: { theme: e.target.value as Theme },
-                  })
-                }
-              >
-                <option value="charcoal">Charcoal</option>
-                <option value="slate">Slate</option>
-                <option value="black">Black</option>
-              </select>
-            </label>
             <label className="setting-row">
               24-hour clock
               <input

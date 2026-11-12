@@ -17,7 +17,15 @@ export type Section = (typeof sections)[number];
 export type Mode = "home" | "computer";
 export const profileIds = ["household", "anthony", "barbara"] as const;
 export type ProfileId = (typeof profileIds)[number];
-export type Theme = "charcoal" | "slate" | "black";
+export const themes = [
+  "charcoal",
+  "slate",
+  "black",
+  "aurora",
+  "ember",
+  "ocean",
+] as const;
+export type Theme = (typeof themes)[number];
 export type Widget =
   | "calendar"
   | "week"
@@ -48,6 +56,8 @@ export type WidgetSize = "small" | "wide" | "large";
 export interface Profile {
   name: string;
   theme: Theme;
+  effects?: boolean;
+  pixelCompanion?: boolean;
   hour24: boolean;
   idleReturn: boolean;
   visibleCalendars: ProfileId[];

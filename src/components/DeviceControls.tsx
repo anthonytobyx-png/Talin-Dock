@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { canControl, type Device } from "../devices/model";
 import { sendCommand } from "../integrations/contracts";
+import { PowerAction } from "./PowerAction";
 import {
   addPowerTimer,
   readPowerTimers,
@@ -69,8 +70,10 @@ export function DeviceControls({
       <h3>Power &amp; timers</h3>
       <div className="button-row">
         {[true, false].map((on) => (
-          <button
+          <PowerAction
             key={String(on)}
+            on={on}
+            reported={powerReady ? device.powerState : undefined}
             disabled={!powerReady || busy}
             onClick={() =>
               run(async () => {
@@ -85,9 +88,7 @@ export function DeviceControls({
                 );
               })
             }
-          >
-            Turn {on ? "on" : "off"}
-          </button>
+          />
         ))}
       </div>
       {!powerReady && <p>Power control unavailable.</p>}

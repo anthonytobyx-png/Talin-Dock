@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { defaults, reducer, sections } from "../state/model";
+import { defaults, reducer, sections, themes } from "../state/model";
 import { decode, localSettings, STORAGE_KEY } from "../state/storage";
 import {
   devices,
@@ -17,6 +17,27 @@ const online: Device = {
   updatedAt: new Date(now).toISOString(),
 };
 describe("preferences and navigation", () => {
+  it("preserves legacy snapshots while round-tripping optional appearance preferences", () => {
+    const legacy = defaults();
+    expect(decode(JSON.stringify(legacy))).toEqual(legacy);
+    expect(legacy.profiles.household).not.toHaveProperty("effects");
+    for (const theme of themes) {
+      const state = reducer(legacy, {
+        type: "preferences",
+        patch: { theme, effects: false, pixelCompanion: true },
+      });
+      expect(decode(JSON.stringify(state))).toEqual(state);
+      expect(state.household).toEqual(legacy.household);
+      expect(state.profiles.anthony).toEqual(legacy.profiles.anthony);
+    }
+    const malformed = JSON.parse(JSON.stringify(legacy));
+    Object.assign(malformed.profiles.household, {
+      theme: "untrusted",
+      effects: "yes",
+      pixelCompanion: {},
+    });
+    expect(decode(JSON.stringify(malformed))).toEqual(legacy);
+  });
   it("round-trips profile, household layout and selected room independently", () => {
     let state = reducer(defaults(), { type: "room", room: "Bedroom" });
     state = reducer(state, { type: "profile", id: "barbara" });

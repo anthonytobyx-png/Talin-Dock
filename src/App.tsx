@@ -27,6 +27,7 @@ import {
 } from "./pages/Sections";
 import { Modal } from "./components/primitives";
 import { InstallStatus } from "./components/InstallStatus";
+import { PixelCompanion } from "./components/PixelCompanion";
 const icons = {
   Home: HomeIcon,
   Devices: LayoutGrid,
@@ -76,7 +77,9 @@ export default function App() {
     }
   }
   return (
-    <div className={`app theme-${profile.theme} mode-${state.mode}`}>
+    <div
+      className={`app theme-${profile.theme} mode-${state.mode} ${profile.effects === false ? "effects-off" : "effects-on"}`}
+    >
       <a className="skip-link" href="#content">
         Skip to content
       </a>
@@ -151,6 +154,7 @@ export default function App() {
             TALIN DOCK <span className="topbar-separator">/</span>{" "}
             {state.section}
           </span>
+          {profile.pixelCompanion !== false && <PixelCompanion />}
           <button
             className="profile-chip"
             aria-label={`Switch profile: ${profile.name}`}
@@ -175,7 +179,9 @@ export default function App() {
             Safari storage settings.
           </div>
         )}
-        {page(state.section)}
+        <div className="page-surface" key={state.section}>
+          {page(state.section)}
+        </div>
         <InstallStatus />
       </main>
       {profilesOpen && (
